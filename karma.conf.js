@@ -15,8 +15,8 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-      'src/**/*.js',
-      'src/**/*.js'
+      'src/browser.js',
+      'src/browser.karma.js'
     ],
 
 
@@ -34,7 +34,7 @@ module.exports = function(config) {
     // test results reporter to use
     // possible values: 'dots', 'progress'
     // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-    reporters: ['progress'],
+    reporters: ['jasmine-diff', 'progress'],
 
 
     // web server port

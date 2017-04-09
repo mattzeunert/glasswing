@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "jasmine-node src --autotest"
+    "jasmine-node": "jasmine-node src --autotest",
+    "karma": "karma start"
   },
   "repository": {
     "type": "git",
@@ -25,6 +26,10 @@
   },
   "devDependencies": {
     "jasmine-core": "^2.5.2",
-    "jasmine-node": "^1.14.5"
+    "jasmine-node": "^1.14.5",
+    "karma": "^1.6.0",
+    "karma-chrome-launcher": "^2.0.0",
+    "karma-jasmine": "^1.1.0",
+    "karma-jasmine-diff-reporter": "^1.0.0"
   }
 }
