@@ -1,67 +1,4 @@
-function valueToString(value, depth) {
-    if (depth === undefined) {
-        depth = 0;
-    }
-    if (depth > 4) {
-        return "TOO DEEP"
-    }
-    var valueString = ""
-    if (typeof value == "symbol") {
-        valueString = "(Symbol)"
-    } 
-    else if (value && value instanceof HTMLElement) {
-        return value.outerHTML
-    }
-    else if (value && value.attributes && value.cid) {
-        //backbone model
-        return "(Backbone model)\\n" + valueToString(value.attributes, depth + 1)
-    }
-    else if (value && value.jquery && value.on) {
-        // jquery object
-        var inside = Array.prototype.map.call(value, v => valueToString(v, depth + 1)).map(s => "  " + s).join(", \\n")
-        return "[" + inside + "]"
-    }
-    else if (value && value.length && value.map == Array.prototype.map) {
-        if (depth < 2) {
-            valueString = "[" + Array.prototype.map.call(value, v => valueToString(v, depth + 1)).join(",\\n  ") + "]"
-        } else {
-            try {
-                valueString = value + ""
-            } catch (err){
-                valueString =  "coulntd serialize"
-            }
-        }
-        
-    }
-    else if (typeof value === "object" && value !== null) {
-            valueString = "{\\n"
-            Object.keys(value).slice(0, 5).forEach(function(key){
-                var str = ""
-                try {
-                    str = valueToString(value[key], depth + 1)
-                } catch(err){
-                    str = "Coudn't serialize"
-                }
-                valueString += "    " + key + ": " + str + "\\n"
-            })
-            valueString += ", ...}"
-        }
-    else {
-        try {
-            valueString =  value + ""
-        } catch(e) {
-            valueString = "Couldn't serialize value"
-            console.log("couldn't serialize", value)
-        }
-        
-        
-    }
-
-    if (valueString.length > 400) {
-        valueString = valueString.slice(0, 400) + "...(truncated)"
-    }
-    return valueString
-}
+console.profile("Load")
 
 var recordedValueBuffer = []
 var __jscb = {
@@ -73,6 +10,10 @@ var __jscb = {
 }
 
 function serializeValue(value, depth){
+    // try {
+    //     console.log("serializng", value)
+    // } catch (err){console.log("serilaizng sth")}
+    
     if (depth === undefined) {
         depth = 0;
     }
@@ -94,7 +35,11 @@ function serializeValue(value, depth){
             type: "null"
         }   
     } else if (typeof value === "string") {
-        return value
+        return {
+            type: "string",
+            length: value.length,
+            text: value.slice(0, 100)
+        }
     }
     else if (typeof value === "number") {
         return value
@@ -117,7 +62,8 @@ function serializeValue(value, depth){
     else if (value && value.length && value.map === Array.prototype.map) {
         return {
             type: "array",
-            items: value.map(v => serialize(v))
+            itemCount: value.length,
+            items: value.slice(0, 5).map(v => serialize(v))
         }
     } else if (value && value.jquery && value.length && value.on) {
         var elements = []
@@ -139,26 +85,53 @@ function serializeValue(value, depth){
             keyCount: keys.length,
             data
         }
+    } else if (typeof value === "symbol") {
+        return {
+            type: "symbol"
+        }
     } else {
         console.log("unhandled value", value)
         console.count("UNHANDLED")
         return "Unhandled"
     }
 }
-
+// todo: make sure all values are actually sent... probs best to test by setting valuestosend max to 1 or 2
 window.__jscbRV = function(scriptId, valueId, value, memberExpressionParent){
     return __jscb.recordValue.apply(this, arguments)
 }
 setInterval(function(){
-    var body = JSON.stringify(recordedValueBuffer)
-    console.log("sending " + recordedValueBuffer.length + " values", "size: ", body.length / 1024 /1024, "MB")
+    if (recordedValueBuffer.length === 0) {
+        return;
+    }
+    var valuesToSend = recordedValueBuffer.length; 
+    if (valuesToSend > 250000) {
+        valuesToSend = 250000
+    }
+    var body = JSON.stringify(recordedValueBuffer.slice(0, valuesToSend))
+    console.time("Generate JSON")
+    var body = "["
+    for (var i=0; i<valuesToSend; i++) {
+        if (i !== 0) {
+            body += ","
+        }
+        var value = recordedValueBuffer[i]
+        var str = JSON.stringify(value)
+        if (str.length > 1000) {
+            console.log("Large serialized/stringified value", value)
+        }
+        body += str
+    }
+    body += "]"
+    console.timeEnd("Generate JSON")
+    console.log("sending " + valuesToSend + " values", "size: ", body.length / 1024 /1024, "MB")
     fetch("/__jscb/reportValues", {
         headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
         },
         body: body,
         method: "post"
     })
-    recordedValueBuffer = []
+    recordedValueBuffer = recordedValueBuffer.slice(valuesToSend)
+    console.log("values in buffer: ", recordedValueBuffer.length)
 }, 1000)

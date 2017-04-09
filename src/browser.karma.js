@@ -5,7 +5,17 @@ describe("serializeValue", function(){
             value: [1, 2],
             serialized: {
                 type: "array",
+                itemCount: 2,
                 items: [1, 2]
+            }
+        },
+        {
+            name: "a large array of numbers",
+            value: [1, 2, 3, 4, 5, 6, 7],
+            serialized: {
+                type: "array",
+                itemCount: 7,
+                items: [1, 2, 3, 4, 5]
             }
         },
         {
@@ -49,7 +59,20 @@ describe("serializeValue", function(){
         {
             name: "strings",
             value: "Hi",
-            serialized: "Hi"
+            serialized: {
+                type: "string",
+                text: "Hi",
+                length: 2
+            }
+        },,
+        {
+            name: "long strings",
+            value: new Array(10000).join("A"),
+            serialized: {
+                type: "string",
+                text: new Array(101).join("A"),
+                length: 9999
+            }
         },
         {
             name: "numbers",
@@ -84,7 +107,14 @@ describe("serializeValue", function(){
                     }
                 }
             }
-        }
+        },
+        {
+            name: "symbols",
+            value: Symbol("A"),
+            serialized: {
+                type: "symbol"
+            }
+        },
     ]
 
     specs.forEach(function(spec){

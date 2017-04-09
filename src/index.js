@@ -34,7 +34,9 @@ var scriptIdCounter = 1
 
 app.use( bodyParser.json({limit: "300mb"}) );
 app.use(function(req, res){
+    console.log("REQUEST", req.url)
     if (req.url.indexOf("__jscb/reportValues") !== -1) {
+        console.log("Received " + req.body.length + " values")
         req.body.forEach(function(data){
             var dataStore = getDataStore(data.scriptId)
             dataStore.reportValue(data)
