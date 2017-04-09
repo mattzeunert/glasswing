@@ -59,6 +59,7 @@ function renderInfo(info){
     })
     return `<html><body><pre>${m.toString().replace(/<script/g, "&lt;script")}</pre>
         <div id="overlay"></div>
+        <br><br><br>
         <div>ERRORS: <br>${errors.join("<br>")}</div>
         <script>
             window.values = JSON.parse(decodeURI("${encodeURI(JSON.stringify(info.values))}"))
@@ -68,6 +69,9 @@ function renderInfo(info){
                 var vals = window.values[valId]
 
                 if (vals.length ===0) {
+                    if (el.style.backgroundColor === "red") {
+                        el.style.backgroundColor = "gray"
+                    }
                     el.style.borderBottom ="1px solid lime"
                 }
             })
@@ -79,7 +83,8 @@ function renderInfo(info){
                 if (!valId){return}
                 var vals = window.values[valId]
 
-                window.overlay = document.getElementById("overlay")
+                var overlay = document.getElementById("overlay")
+                overlay.style.display = "block"
                 overlay.setAttribute("style",
                     "top: " + (el.getBoundingClientRect().top + 20 + window.scrollY) +
                     "px; left: " + (el.getBoundingClientRect().left + 20) + "px"
@@ -92,6 +97,14 @@ function renderInfo(info){
                 }
                 
                 console.log(vals)
+            })
+
+            document.body.addEventListener("mouseout", function(e){
+                var el = e.target
+                console.log(el)
+                var valId = el.getAttribute("data-value-id")
+                var overlay = document.getElementById("overlay")
+                overlay.style.display = "none"
             })
 
             
