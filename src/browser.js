@@ -76,7 +76,7 @@ function serializeValue(value, depth){
     if (depth === undefined) {
         depth = 0;
     }
-    if (depth > 3) {
+    if (depth > 4) {
         return {
             type: "Too Deep"
         }
@@ -85,10 +85,29 @@ function serializeValue(value, depth){
         return serializeValue(val, depth + 1)
     }
 
-    if (typeof value === "number") {
+    if (value === undefined) {
+        return {
+            type: "undefined"
+        }   
+    } else if (value === null) {
+        return {
+            type: "null"
+        }   
+    } else if (typeof value === "string") {
         return value
     }
-    if (value instanceof HTMLElement) {
+    else if (typeof value === "number") {
+        return value
+    }
+    else if (typeof value === "boolean") {
+        return value
+    }
+    else if (typeof value === "function") {
+        return {
+            type: "function"
+        }
+    }
+    else if (value instanceof HTMLElement) {
         return {
             type: "HTMLElement",
             tagName: value.tagName,
@@ -109,8 +128,20 @@ function serializeValue(value, depth){
             type: "jQuery Object",
             elements
         }
+    } else if (typeof value === "object") {
+        var data = {}
+        var keys = Object.keys(value)
+        keys.slice(0, 5).forEach(function(key){
+            data[key] = serialize(value[key])
+        })
+        return {
+            type: "object",
+            keyCount: keys.length,
+            data
+        }
     } else {
         console.log("unhandled value", value)
+        console.count("UNHANDLED")
         return "Unhandled"
     }
 }

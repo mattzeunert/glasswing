@@ -31,6 +31,59 @@ describe("serializeValue", function(){
                     __jscb.serializeValue(document.createElement("div"))
                 ]
             }
+        },
+        {
+            name: "undefind",
+            value: undefined,
+            serialized: {
+                type: "undefined"
+            }
+        },
+        {
+            name: "null",
+            value: null,
+            serialized: {
+                type: "null"
+            }
+        },
+        {
+            name: "strings",
+            value: "Hi",
+            serialized: "Hi"
+        },
+        {
+            name: "numbers",
+            value: 5,
+            serialized: 5
+        },
+        {
+            name: "booleans",
+            value: true,
+            serialized: true
+        },
+        {
+            name: "functions",
+            value: function(){},
+            serialized: {
+                type: "function"
+            }
+        },
+        {
+            name: "objects",
+            value: {
+                five: 5,
+                "null": null
+            },
+            serialized: {
+                type: "object",
+                keyCount: 2,
+                data: {
+                    five: 5,
+                    "null": {
+                        type: "null"
+                    }
+                }
+            }
         }
     ]
 
