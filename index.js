@@ -21,8 +21,10 @@ app.use(function(req, res){
         if (body.indexOf("doctype") !== -1) {
             res.end(`<script>
                 var recordedValueBuffer = []
-                window.__jscbRecordValue = function(scriptId, valueId, value){
+                window.__jscbRecordValue = function(scriptId, valueId, value, memberExpressionParent){
                     recordedValueBuffer.push({scriptId, valueId, value: value + ""})
+                    
+                    return value
                 }
                 setInterval(function(){
                     fetch("/__jscb/reportValues", {

@@ -94,7 +94,32 @@ function getPlugin(url, js){
         return {
             visitor: {
                 FunctionExpression: handleFn,
-                FunctionDeclaration: handleFn
+                FunctionDeclaration: handleFn,
+                MemberExpression: function(path){
+                    if (path.parent.type === "MemberExpression") {
+                        return;
+                    }
+                    if (path.parent.type === "AssignmentExpression") {
+                        return;
+                    }
+                    if (path.parent.type === "UpdateExpression") {
+                        return;
+                    }
+                    if (path.parent.type === "CallExpression") {
+                        return;
+                    }
+                    if (path.node.ignore) {return}
+                    path.node.ignore = true
+                    path.replaceWith(
+                        makeRecordValueCall(
+                            path.node,
+                            path.node,
+                            path.node.object
+                        )
+                    )
+                    
+                    // console.log(path.node)
+                }
             }
         }
     }
@@ -102,20 +127,28 @@ function getPlugin(url, js){
     function handleFn(path){
         path.node.params.forEach(function(param){
             path.node.body.body.unshift(
-                t.callExpression(
-                    t.identifier("__jscbRecordValue"),
-                    [
-                        t.NumericLiteral(scriptId),
-                        t.NumericLiteral(getValueId({
-                            start: param.start,
-                            end: param.end,
-                            loc: param.loc
-                        })),
-                        t.identifier(param.name)
-                    ]
-                )
+                makeRecordValueCall(param, t.identifier(param.name))
             )
         })
     }
+    function makeRecordValueCall(node, value, memberExpressionParent){
+        var args = [
+                t.NumericLiteral(scriptId),
+                t.NumericLiteral(getValueId({
+                    start: node.start,
+                    end: node.end,
+                    loc: node.loc
+                })),
+                value
+            ]
+    
+        if (memberExpressionParent) {
+            args.push(memberExpressionParent)
+        }
 
+        return t.callExpression(
+            t.identifier("__jscbRecordValue"),
+            args
+        )
+    }
 }
