@@ -1,10 +1,13 @@
 var request = require('request');
 var endsWith = require("ends-with")
+var escape = require('escape-html');
 const MagicString = require( 'magic-string' );
+var fs = require("fs")
 
 var connect = require('connect');
 var http = require('http');
 var bodyParser = require('body-parser')
+var url = require("url")
 
 var app = connect();
 
@@ -35,6 +38,16 @@ var scriptIdCounter = 1
 app.use( bodyParser.json({limit: "300mb"}) );
 app.use(function(req, res){
     console.log("REQUEST", req.url)
+    if (req.url === "/") {
+        var html = ""
+        html += "<h1>JS Code Browser</h1>"
+        html += "<a href=\"?not-jscb\">Load through proxy </a><br>"
+        html += "Browse these JS files: (TODO: coverge numbers)<br>"
+        html += Object.keys(urlToScriptId).map(url => `<a href='${escape(url)}?browse'>${escape(url)}</a>`).join("<br>")
+        res.end(`<html><body>${html}</body></html>`)
+        return
+    }
+
     if (req.url.indexOf("__jscb/reportValues") !== -1) {
         console.log("Received " + req.body.length + " values")
         req.body.forEach(function(data){
@@ -44,11 +57,30 @@ app.use(function(req, res){
         res.end('{"status": "success"}')
     }
 
-    request.get('http://localhost:7777' + req.url, function (error, response, body) {
-        if (body.indexOf("doctype") !== -1) {
+    var urlParts = req.url.split("/")
+    urlParts.shift()
+    console.log(urlParts)
+    var domain = decodeURIComponent(urlParts.shift())
+    var path = "/" + urlParts.join("/")
+    console.log("aa", domain, "-" ,path)
+
+    request.get(domain + path, function (error, response, body) {
+        if (error){
+            console.log("ERROR", error)
+        }
+        // console.log(arguments)
+        if (body.indexOf("doctype") !== -1 || body.indexOf("DOCTYPE") !== -1) {
+            debugger
+            var updatedBody = body.replace(/(<script[^>]*>)/g, function(match){
+                return match.replace(/src=\"([^"]*)\"/, function(x, m){
+                    u = url.parse(m)
+                    return "src=\"" + "/" + encodeURIComponent(u.protocol + "//" + u.hostname) + "/" + u.pathname + "\""
+                })
+            })
             res.end(`<script>
                 ${require("fs").readFileSync("./src/browser.js").toString()}
-            </script>` + body)
+            </script>` + updatedBody
+            )
         } else if (endsWith(req.url, ".js")) {
             var scriptId = scriptIdCounter
             scriptIdCounter++
@@ -64,7 +96,11 @@ app.use(function(req, res){
             res.end(compiled.code)
         } else if (endsWith(req.url, ".js?browse")) {
             var info = getDataStore(urlToScriptId[req.url.replace("?browse", "")])
-            res.end(renderInfo(info))
+            if (!info){
+                res.end("No data for this file has been collected. Load a web page that loads this file")
+            } else {
+                res.end(renderInfo(info))
+            }
         } else {
             res.end(body)
         }
