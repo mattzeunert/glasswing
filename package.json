@@ -1,0 +1,25 @@
+{
+  "name": "js-code-browser",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mattzeunert/js-code-browser.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mattzeunert/js-code-browser/issues"
+  },
+  "homepage": "https://github.com/mattzeunert/js-code-browser#readme",
+  "dependencies": {
+    "babel-types": "^6.24.1",
+    "connect": "^3.6.0",
+    "ends-with": "^0.2.0",
+    "request": "^2.81.0"
+  }
+}
