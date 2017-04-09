@@ -36,7 +36,9 @@ function renderInfo(info){
     var m = new MagicString(info.code)
     Object.keys(info.locations).forEach(function(id){
         var loc = info.locations[id]
-        m.insertLeft(loc.start, "<span data-value-id='" + id + "' style='background: red'>x</span>")
+        m.overwrite(loc.start, loc.end, "<span data-value-id='" + id + "' style='background: red'>" + 
+            info.code.slice(loc.start, loc.end)
+         + "</span>")
     })
     return `<html><body><pre>${m.toString()}</pre>
         <div id="overlay"></div>
