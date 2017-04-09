@@ -12,8 +12,14 @@ module.exports = {
             plugins: [getPlugin(url, js)]
         }).code
     },
-    browse: browse
+    browse: browse,
+    reportValue: reportValue
 };
+
+function reportValue(data){
+    var info = scriptInfo[data.scriptId]
+    info.values[data.valueId].push(data.value)
+}
 
 function browse(url){
     console.log(url, "aaaa")
@@ -23,15 +29,44 @@ function browse(url){
 
 function ScriptInfo() {
     this.locations = {}
+    this.values = {}
 }
 
 function renderInfo(info){
     var m = new MagicString(info.code)
     Object.keys(info.locations).forEach(function(id){
         var loc = info.locations[id]
-        m.insertLeft(loc.start, "<span style='background: red'>x</span>")
+        m.insertLeft(loc.start, "<span data-value-id='" + id + "' style='background: red'>x</span>")
     })
-    return `<html><body><pre>${m.toString()}</pre></body></body>`
+    return `<html><body><pre>${m.toString()}</pre>
+        <div id="overlay"></div>
+        <script>
+            window.values = JSON.parse(decodeURI("${encodeURI(JSON.stringify(info.values))}"))
+            document.body.addEventListener("mouseover", function(e){
+                var el = e.target
+                console.log(el)
+                valId = el.getAttribute("data-value-id")
+                if (!valId){return}
+                var vals = window.values[valId]
+
+                window.overlay = document.getElementById("overlay")
+                overlay.setAttribute("style",
+                    "top: " + (el.getBoundingClientRect().top + 20 + window.scrollY) +
+                    "px; left: " + (el.getBoundingClientRect().left + 20) + "px"
+                    + ";position: absolute; background: white; padding: 4px; border: 1px solid #ddd;"
+                )
+                if (vals.length > 0) {
+                    overlay.innerText = JSON.stringify(vals)
+                } else {
+                    overlay.innerText = "No values captured. This code didn't run."
+                }
+                
+                console.log(vals)
+            })
+
+            
+        </script>
+        </body></body>`
 }
 
 var cc = require("fs").readFileSync("./test.js").toString()
@@ -50,6 +85,7 @@ function getPlugin(url, js){
     function getValueId(loc){
         const id = valueIdCounter
         info.locations[id] = loc
+        info.values[id] = []
         valueIdCounter++;
         return id
     }

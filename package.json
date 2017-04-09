@@ -18,6 +18,7 @@
   "homepage": "https://github.com/mattzeunert/js-code-browser#readme",
   "dependencies": {
     "babel-types": "^6.24.1",
+    "body-parser": "^1.17.1",
     "connect": "^3.6.0",
     "ends-with": "^0.2.0",
     "request": "^2.81.0"
