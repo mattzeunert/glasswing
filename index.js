@@ -17,7 +17,7 @@ app.use(function(req, res){
         res.end('{"status": "success"}')
     }
 
-    request.get('http://todomvc.com' + req.url, function (error, response, body) {
+    request.get('http://localhost:7777' + req.url, function (error, response, body) {
         if (body.indexOf("doctype") !== -1) {
             res.end(`<script>
                 var recordedValueBuffer = []

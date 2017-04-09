@@ -1,17 +1,19 @@
-this.listenTo(app.todos, 'add', this.addOne);
+a.b()
 
-a = a.b.c
-a = a.b++
-a.b.c = 55
+// this.listenTo(app.todos, 'add', this.addOne);
+
+// a = a.b.c
+// a = a.b++
+// a.b.c = 55
 
 
 
-var square = function square(x,add) {
-  return x * x + add;
-};
+// var square = function square(x,add) {
+//   return x * x + add;
+// };
 
-function square(x,add) {
-  return x * x + add;
-};
+// function square(x,add) {
+//   return x * x + add;
+// };
 
-square(5 , 2)
+// square(5 , 2)

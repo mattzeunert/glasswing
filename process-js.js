@@ -36,9 +36,16 @@ function renderInfo(info){
     var m = new MagicString(info.code)
     Object.keys(info.locations).forEach(function(id){
         var loc = info.locations[id]
-        m.overwrite(loc.start, loc.end, "<span data-value-id='" + id + "' style='background: red'>" + 
-            info.code.slice(loc.start, loc.end)
-         + "</span>")
+        if (loc.type === "call") {
+            m.insertLeft(loc.start, "<span data-value-id='" + id + "' style='background: red'>" + 
+                "RET"
+            + "</span>")
+        }
+        else {
+            m.overwrite(loc.start, loc.end, "<span data-value-id='" + id + "' style='background: red'>" + 
+                info.code.slice(loc.start, loc.end)
+            + "</span>")
+        }
     })
     return `<html><body><pre>${m.toString()}</pre>
         <div id="overlay"></div>
@@ -92,11 +99,33 @@ function getPlugin(url, js){
         return id
     }
     scriptIdCounter++;
+
+    function hasParent(type, path) {
+        var parentPath = path
+        while (parentPath = path.parentPath) {
+            if (parentPath.node.type === type) {
+                return true
+            }
+        }
+        return false
+    }
+
     return function plugin(){
         return {
             visitor: {
                 FunctionExpression: handleFn,
                 FunctionDeclaration: handleFn,
+                CallExpression: function(path){
+                    if (path.node.ignore) {return}
+                    path.node.ignore = true
+                    path.replaceWith(makeRecordValueCall(
+                        path.node.callee,
+                        path.node,
+                        null,
+                        "call"
+                    ))
+
+                },
                 MemberExpression: function(path){
                     if (path.parent.type === "MemberExpression") {
                         return;
@@ -114,7 +143,7 @@ function getPlugin(url, js){
                     path.node.ignore = true
                     path.replaceWith(
                         makeRecordValueCall(
-                            path.node,
+                            path.node.property,
                             path.node,
                             path.node.object
                         )
@@ -133,13 +162,14 @@ function getPlugin(url, js){
             )
         })
     }
-    function makeRecordValueCall(node, value, memberExpressionParent){
+    function makeRecordValueCall(node, value, memberExpressionParent, type){
         var args = [
                 t.NumericLiteral(scriptId),
                 t.NumericLiteral(getValueId({
                     start: node.start,
                     end: node.end,
-                    loc: node.loc
+                    loc: node.loc,
+                    type
                 })),
                 value
             ]
@@ -148,9 +178,11 @@ function getPlugin(url, js){
             args.push(memberExpressionParent)
         }
 
-        return t.callExpression(
+        var call =t.callExpression(
             t.identifier("__jscbRecordValue"),
             args
         )
+        call.ignore = true
+        return call
     }
 }
