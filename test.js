@@ -1,4 +1,4 @@
-a.b()
+a.b(a.c)
 
 // this.listenTo(app.todos, 'add', this.addOne);
 

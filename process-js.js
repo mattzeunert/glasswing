@@ -34,27 +34,48 @@ function ScriptInfo() {
 
 function renderInfo(info){
     var m = new MagicString(info.code)
+    var errors = []
     Object.keys(info.locations).forEach(function(id){
         var loc = info.locations[id]
-        if (loc.type === "call") {
-            m.insertLeft(loc.start, "<span data-value-id='" + id + "' style='background: red'>" + 
-                "RET"
-            + "</span>")
-        }
-        else {
-            m.overwrite(loc.start, loc.end, "<span data-value-id='" + id + "' style='background: red'>" + 
-                info.code.slice(loc.start, loc.end)
-            + "</span>")
+        try {
+            if (loc.type === "call") {
+                m.insertLeft(loc.end, "<span data-value-id='" + id + "' style='background: red; color: white;border-radius: 4px;padding: 2;font-size: 12px'>" + 
+                    "RET"
+                + "</span>")
+            }
+            else {
+                var end = loc.end
+                if (loc.type === "returnStatement") {
+                    end = loc.start + "return".length
+                }
+                m.overwrite(loc.start, end, "<span data-value-id='" + id + "' style='border-bottom: 1px solid red'>" + 
+                    (loc.type === "returnStatement" ? "return" : info.code.slice(loc.start, loc.end) )
+                    
+                + "</span>")
+            }
+        } catch (err) {
+            errors.push(err)
         }
     })
-    return `<html><body><pre>${m.toString()}</pre>
+    return `<html><body><pre>${m.toString().replace(/<script/g, "&lt;script")}</pre>
         <div id="overlay"></div>
+        <div>ERRORS: <br>${errors.join("<br>")}</div>
         <script>
             window.values = JSON.parse(decodeURI("${encodeURI(JSON.stringify(info.values))}"))
+
+            document.querySelectorAll("[data-value-id]").forEach(function(el){
+                var valId = el.getAttribute("data-value-id")
+                var vals = window.values[valId]
+
+                if (vals.length ===0) {
+                    el.style.borderBottom ="1px solid lime"
+                }
+            })
+
             document.body.addEventListener("mouseover", function(e){
                 var el = e.target
                 console.log(el)
-                valId = el.getAttribute("data-value-id")
+                var valId = el.getAttribute("data-value-id")
                 if (!valId){return}
                 var vals = window.values[valId]
 
@@ -65,7 +86,7 @@ function renderInfo(info){
                     + ";position: absolute; background: white; padding: 4px; border: 1px solid #ddd;"
                 )
                 if (vals.length > 0) {
-                    overlay.innerText = JSON.stringify(vals)
+                    overlay.innerHTML = "<pre>" + vals[0].replace(/</g, "&lt;").replace(/>/g, "&gt;") + "</pre>"
                 } else {
                     overlay.innerText = "No values captured. This code didn't run."
                 }
@@ -113,6 +134,17 @@ function getPlugin(url, js){
     return function plugin(){
         return {
             visitor: {
+                ReturnStatement: function(path){
+                    if (path.node.ignore) {return}
+                    if (!path.node.argument) {return}
+                    path.node.ignore = true
+                    path.node.argument = makeRecordValueCall(
+                        path.node,
+                        path.node.argument,
+                        null,
+                        "returnStatement"
+                    )
+                },
                 FunctionExpression: handleFn,
                 FunctionDeclaration: handleFn,
                 CallExpression: function(path){
@@ -136,7 +168,7 @@ function getPlugin(url, js){
                     if (path.parent.type === "UpdateExpression") {
                         return;
                     }
-                    if (path.parent.type === "CallExpression") {
+                    if (path.parent.type === "CallExpression" && path.node === path.parent.callee) {
                         return;
                     }
                     if (path.node.ignore) {return}
@@ -158,7 +190,7 @@ function getPlugin(url, js){
     function handleFn(path){
         path.node.params.forEach(function(param){
             path.node.body.body.unshift(
-                makeRecordValueCall(param, t.identifier(param.name))
+                t.expressionStatement(makeRecordValueCall(param, t.identifier(param.name)))
             )
         })
     }

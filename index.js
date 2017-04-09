@@ -8,7 +8,7 @@ var bodyParser = require('body-parser')
 
 var app = connect();
 
-app.use( bodyParser.json({limit: "100mb"}) );
+app.use( bodyParser.json({limit: "300mb"}) );
 app.use(function(req, res){
     if (req.url.indexOf("__jscb/reportValues") !== -1) {
         req.body.forEach(function(value){
@@ -22,17 +22,48 @@ app.use(function(req, res){
             res.end(`<script>
                 var recordedValueBuffer = []
                 window.__jscbRecordValue = function(scriptId, valueId, value, memberExpressionParent){
-                    recordedValueBuffer.push({scriptId, valueId, value: value + ""})
+                    var valueString = ""
+                    if (typeof value == "symbol") {
+                        valueString = "(Symbol)"
+                    } 
+                    else {
+                        try {
+                            valueString =  value + ""
+                        } catch(e) {
+                            valueString = "Couldn't serialize value"
+                        }
+                        
+                        if (typeof value === "object" && value !== null) {
+                            valueString += "{\\n"
+                            // Object.keys(value).slice(0, 10).forEach(function(key){
+                            //     var str = ""
+                            //     try {
+                            //         str = (value[key] + "")
+                            //     } catch(err){
+                            //         str = "Coudn't serialize"
+                            //     }
+                            //     valueString += "    " + key + ": " + str + "\\n"
+                            // })
+                            valueString += ", ...}"
+                        }
+                    }
+
+                    if (valueString.length > 100) {
+                        valueString = valueString.slice(0, 100) + "...(truncated)"
+                    }
+                    recordedValueBuffer.push({scriptId, valueId, value: valueString})
                     
                     return value
                 }
                 setInterval(function(){
+                    var body = JSON.stringify(recordedValueBuffer)
+                    console.log("sending " + recordedValueBuffer.length + " values", "size: ", body.length / 1024 /1024, "MB")
                     fetch("/__jscb/reportValues", {
                         headers: {
                         'Accept': 'application/json',
                         'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify(recordedValueBuffer),
+                        body: body,
                         method: "post"
                     })
                     recordedValueBuffer = []
