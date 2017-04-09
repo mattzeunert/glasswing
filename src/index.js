@@ -42,6 +42,18 @@ app.use(function(req, res){
         var html = ""
         html += "<h1>JS Code Browser</h1>"
         html += "<a href=\"?not-jscb\">Load through proxy </a><br>"
+        html += `Enter web page to proxy: <form onSubmit="return onS(event)"><input type="text" id="url"></input>
+            <button type="submit">Load</button></form>
+            <script>
+                window.onS = function(e){
+                    e.preventDefault()
+                    var url = document.querySelector("#url").value
+                    var a = document.createElement("a")
+                    a.href = url
+                    location.href = "/" + encodeURIComponent(a.protocol + "//" + a.hostname) + a.pathname
+                }
+            </script>
+        `
         html += "Browse these JS files: (TODO: coverge numbers)<br>"
         html += Object.keys(urlToScriptId).map(url => `<a href='${escape(url)}?browse'>${escape(url)}</a>`).join("<br>")
         res.end(`<html><body>${html}</body></html>`)
