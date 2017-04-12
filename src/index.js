@@ -43,6 +43,7 @@ const resById = {}
 
 app.use( bodyParser.json({limit: "300mb"}) );
 app.use(function(req, res){
+    console.log(req.url)
 
     if (req.url.indexOf("/browse") !== -1) {
         var url = decodeURIComponent(req.url).replace("/browse?", "")
@@ -65,7 +66,7 @@ app.use(function(req, res){
         return
     }
     if (req.url.indexOf("/response") !== -1) {
-
+        console.log("response", req.url.split("/")[2])
         setTimeout(function(){
             
             var response = req.body.response
@@ -85,25 +86,36 @@ app.use(function(req, res){
 
                 response = compiled.code
             }
-            res.end("OK")
+            
 
 
 
             var id = req.url.split("/")[2]
             console.log("resposne", id)
 
-            var interval = setInterval(function(){
-                if (resById[id]) {
-                    var pre = fs.readFileSync("src/browser.js") + "\n\n"
-                    resById[id].end(pre + response)
-                    clearInterval(interval)
-                } else {
-                    console.log("no request yet for" + id, "waiting...")
-                }
-                
-            }, 1000)
-            
+            var pre = fs.readFileSync("src/browser.js") + "\n\n"
+            response = pre + response
 
+            if (!req.body.returnProcessedContent) {
+                var interval = setInterval(function(){
+                    if (resById[id]) {
+                        
+                        resById[id].end(pre + response)
+                        clearInterval(interval)
+                    } else {
+                        console.log("no request yet for" + id, "waiting...")
+                    }
+                    
+                }, 100)
+                res.end("OK")
+            } else {
+                res.end(response)
+            }
+                
+
+            
+            
+            
             
         }, 1000)
         

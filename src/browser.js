@@ -6,7 +6,9 @@ function inittt() {
     var recordedValueBuffer = []
     var __jscb = {
         recordValue: function(scriptId, valueId, value, memberExpressionParent){
+            
             recordedValueBuffer.push({scriptId, valueId, value: __jscb.serializeValue(value)})
+            
             return value
         },
         serializeValue
@@ -131,15 +133,28 @@ function inittt() {
         body += "]"
         console.timeEnd("Generate JSON")
         console.log("sending " + valuesToSend + " values", "size: ", body.length / 1024 /1024, "MB")
-    
-        fetch("http://localhost:8000/__jscb/reportValues", {
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            body: body,
-            method: "post"
-        })
+        
+        
+
+        if (location.protocol === "http:") {
+            fetch("http://localhost:8000/__jscb/reportValues", {
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: body,
+                method: "post"
+            })
+        } else {
+            var event = new CustomEvent("RebroadcastExtensionMessage", {
+                detail: {
+                    "cake": body ,
+                    isFromJSExtensionMessage: true
+                }
+            });
+            window.dispatchEvent(event);
+        }
+        
         recordedValueBuffer = recordedValueBuffer.slice(valuesToSend)
         console.log("values in buffer: ", recordedValueBuffer.length)
     }, 1000)
