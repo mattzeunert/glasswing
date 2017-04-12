@@ -1,6 +1,7 @@
 var request = require('request');
 var endsWith = require("ends-with")
 var escape = require('escape-html');
+var getType = require("./analysis")
 const MagicString = require( 'magic-string' );
 var fs = require("fs")
 
@@ -249,12 +250,26 @@ function renderInfo(info){
             errors.push(err)
         }
     })
+
+    var res = {}
+    Object.keys(info.values).forEach(function(key){
+        var values = info.values[key]
+        if (values.length === 0) {
+            res[key] = null
+        } else {
+            res[key] = {
+                type: getType(values),
+                examples: values.slice(0, 1)
+            }
+        }
+    })
+
     return `<html><body><pre>${m.toString().replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/OPENTAG/g, "<").replace(/CLOSETAG/g, ">")}</pre>
         <div id="overlay"></div>
         <br><br><br>
         <div>ERRORS: <br>${errors.join("<br>")}</div>
         <script>
-            window.values = JSON.parse(decodeURI("${encodeURI(JSON.stringify(info.values))}"))
+            window.values = JSON.parse(decodeURI("${encodeURI(JSON.stringify(res))}"))
             ${require("fs").readFileSync("src/ui/ui.js").toString()}
 
             

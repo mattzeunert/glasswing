@@ -32,8 +32,8 @@ document.body.addEventListener("mouseover", function(e){
         "px; left: " + (el.getBoundingClientRect().left + 20) + "px"
         + ";position: absolute; background: white; padding: 4px; border: 1px solid #ddd;"
     )
-    if (vals.length > 0) {
-        overlay.innerHTML = "Values: " + vals.length + "<br>" + "<pre>" + JSON.stringify(vals[0], null, 4).replace(/</g, "&lt;").replace(/>/g, "&gt;") + "</pre>"
+    if (vals) {
+        overlay.innerHTML = "Values: " + vals.length + "<br>" + "<pre>" + JSON.stringify(vals, null, 4).replace(/</g, "&lt;").replace(/>/g, "&gt;") + "</pre>"
     } else {
         overlay.innerText = "No values captured. This code didn't run."
     }
