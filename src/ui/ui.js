@@ -33,7 +33,37 @@ document.body.addEventListener("mouseover", function(e){
         + ";position: absolute; background: white; padding: 4px; border: 1px solid #ddd;"
     )
     if (vals) {
-        overlay.innerHTML = "Values: " + vals.length + "<br>" + "<pre>" + JSON.stringify(vals, null, 4).replace(/</g, "&lt;").replace(/>/g, "&gt;") + "</pre>"
+        function esc(str){
+            if(str===undefined) debugger
+            return str.replace(/</g, "&lt;").replace(/>/g, "&gt;")
+        }
+        overlay.innerHTML = "<pre>" + renderTypes(vals.type)
+            + "<br><h2>Examples</h2>" + esc(JSON.stringify(vals.examples, null, 4))  + "</pre>"
+
+        function renderTypes(type){
+            if (!type){debugger}
+            console.log("render", type)
+            if (type.length > 1) {
+                return "(" + type.map(t => renderTypes([t])).join(" | ") + ")"
+            }   if (type.length === 0) {
+                return "(No type)"
+            }
+            else {
+                var t = type[0]
+                if (typeof t === "object") {
+                    var ret = "{\n"
+                    ret += Object.keys(t).map(function(key){
+                        return "  " + esc(key) + (t[key].optional ? "?" : "") + ":" + renderTypes(t[key].type)
+                    }).join(",\n")
+                    ret += "\n}"
+                    return ret
+                } else {
+                    return esc(JSON.stringify(t, null, 4))
+                }
+                
+            }
+            
+        }
     } else {
         overlay.innerText = "No values captured. This code didn't run."
     }
