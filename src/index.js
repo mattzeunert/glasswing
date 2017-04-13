@@ -258,7 +258,7 @@ function renderInfo(info){
             res[key] = null
         } else {
             res[key] = {
-                type: getType(values),
+                type: null, // types are out of scope for now
                 examples: values.slice(0, 1)
             }
         }
@@ -269,8 +269,8 @@ function renderInfo(info){
         <br><br><br>
         <div>ERRORS: <br>${errors.join("<br>")}</div>
         <script>
-            window.values = JSON.parse(decodeURI("${encodeURI(JSON.stringify(res))}"))
-            ${require("fs").readFileSync("src/ui/ui.js").toString()}
+            window.values = JSON.parse(decodeURI("${encodeURI(JSON.stringify(res))}"));
+            ${require("fs").readFileSync("src/ui/dist/bundle.js").toString()}
 
             
         </script>

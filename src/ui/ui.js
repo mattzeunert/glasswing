@@ -1,4 +1,84 @@
+import React, {Component} from 'react';
+import {render} from 'react-dom';
 
+var setState = null
+
+class OverlayContent extends Component {
+    constructor(props){
+        super(props)
+        this.state = {}
+    }
+    componentWillMount(){
+        setState = (values) =>{
+            this.setState(values)
+        }
+    }
+    render(){
+        if (this.state.examples) {
+            var examples = this.state.examples.examples
+            
+            return <ValueExample example={examples[0]} isRoot={true} />
+        }
+        return <div>no examples </div>
+    }
+}
+
+class ValueExample extends Component {
+    constructor(props) {
+        super(props)
+        this.state = {
+            
+        }
+    }
+    render(){
+        var example = this.props.example;
+        if (typeof example === "number") {
+            return <span style={{color: "blue"}}>{example}</span>
+        }
+        else if (example.type === "string") {
+            return <span style={{color: "red"}}>"{example.text}"</span>
+        } else if (example.type === "object") {
+            return <span style={{overflow: "hidden"}}>
+                {this.props.isRoot ? <div>Object</div> : null}
+                <span style={{paddingLeft: 20, display: "inline-block"}}>
+                    {
+                        Object.keys(example.data).map((key) => {
+                            return <div>
+                                <span style={{color: "purple"}}>{key}</span>: 
+                                <pre style={{display: "inline"}}> </pre>
+                                {example.data[key].type === "object" ? 
+                                    <span>Object 
+                                    <button onClick={() => this.setState({
+                                        [key + "isExpanded"]: !this.state[key + "isExpanded"]
+                                    })}>
+                                        {this.state[key + "isExpanded"] ? "-" : "+" }
+                                    </button>
+                                    
+                                    <br/></span>
+                                    : ""}
+                                
+                                {(this.state[key + "isExpanded"] || example.data[key].type !== "object") ? 
+                                    <ValueExample example={example.data[key]} />
+                                    : null
+                                }
+                                
+                            </div>
+                        })
+                    }
+                </span>
+        
+            </span>
+        } else {
+            return <span>not handled</span>
+        }
+    }
+}
+
+
+var overlay = document.getElementById("overlay")
+var overlayComp = <OverlayContent />
+window.overlayComop = overlayComp
+render(overlayComp, overlay)
 
 document.querySelectorAll("[data-value-id]").forEach(function(el){
     var valId = el.getAttribute("data-value-id")
@@ -25,6 +105,8 @@ document.body.addEventListener("mouseover", function(e){
         vals = []
     }
 
+    
+
     var overlay = document.getElementById("overlay")
     overlay.style.display = "block"
     overlay.setAttribute("style",
@@ -33,15 +115,22 @@ document.body.addEventListener("mouseover", function(e){
         + ";position: absolute; background: white; padding: 4px; border: 1px solid #ddd;"
     )
     if (vals) {
+        setState({examples: vals})
+
         function esc(str){
             if(str===undefined) debugger
             return str.replace(/</g, "&lt;").replace(/>/g, "&gt;")
         }
-        overlay.innerHTML = "<pre>" + renderTypes(vals.type)
-            + "<br><h2>Examples</h2>" + esc(JSON.stringify(vals.examples, null, 4))  + "</pre>"
+        // overlay.innerHTML = "<pre>" + esc(JSON.stringify(vals.examples, null, 4))  + "</pre>"
 
-        function renderTypes(type){
+        function renderTypes(type, depth){
+            if (!type) {
+                return "no info..."
+            }
             if (!type){debugger}
+            if (depth === undefined) {
+                depth =0 
+            }
             console.log("render", type)
             if (type.length > 1) {
                 return "(" + type.map(t => renderTypes([t])).join(" | ") + ")"
@@ -53,9 +142,9 @@ document.body.addEventListener("mouseover", function(e){
                 if (typeof t === "object") {
                     var ret = "{\n"
                     ret += Object.keys(t).map(function(key){
-                        return "  " + esc(key) + (t[key].optional ? "?" : "") + ":" + renderTypes(t[key].type)
+                        return new Array(depth + 2).join("  ") + esc(key) + (t[key].optional ? "?" : "") + ":" + renderTypes(t[key].type, depth + 1)
                     }).join(",\n")
-                    ret += "\n}"
+                    ret += "\n" + new Array(depth + 1).join("  ") + "}"
                     return ret
                 } else {
                     return esc(JSON.stringify(t, null, 4))
@@ -68,7 +157,6 @@ document.body.addEventListener("mouseover", function(e){
         overlay.innerText = "No values captured. This code didn't run."
     }
     
-    console.log(vals)
 })
 
 document.body.addEventListener("mouseout", function(e){
@@ -76,5 +164,5 @@ document.body.addEventListener("mouseout", function(e){
     console.log(el)
     var valId = el.getAttribute("data-value-id")
     var overlay = document.getElementById("overlay")
-    overlay.style.display = "none"
+    // overlay.style.display = "none"
 })
