@@ -9930,35 +9930,95 @@ var ValueExample = function (_Component2) {
                         Object.keys(example.data).map(function (key) {
                             return _react2.default.createElement(
                                 'div',
-                                null,
+                                { style: { overflow: "hidden" } },
                                 _react2.default.createElement(
-                                    'span',
-                                    { style: { color: "purple" } },
-                                    key
-                                ),
-                                ':',
-                                _react2.default.createElement(
-                                    'pre',
-                                    { style: { display: "inline" } },
-                                    ' '
-                                ),
-                                example.data[key].type === "object" ? _react2.default.createElement(
-                                    'span',
-                                    null,
-                                    'Object',
+                                    'div',
+                                    { style: { float: "left" } },
                                     _react2.default.createElement(
-                                        'button',
-                                        { onClick: function onClick() {
-                                                return _this4.setState(_defineProperty({}, key + "isExpanded", !_this4.state[key + "isExpanded"]));
-                                            } },
-                                        _this4.state[key + "isExpanded"] ? "-" : "+"
+                                        'span',
+                                        { style: { color: "purple" } },
+                                        key
                                     ),
-                                    _react2.default.createElement('br', null)
-                                ) : "",
+                                    ':',
+                                    _react2.default.createElement(
+                                        'pre',
+                                        { style: { display: "inline" } },
+                                        ' '
+                                    ),
+                                    example.data[key].type === "object" ? _react2.default.createElement(
+                                        'span',
+                                        null,
+                                        'Object',
+                                        _react2.default.createElement(
+                                            'button',
+                                            { onClick: function onClick() {
+                                                    return _this4.setState(_defineProperty({}, key + "isExpanded", !_this4.state[key + "isExpanded"]));
+                                                } },
+                                            _this4.state[key + "isExpanded"] ? "-" : "+"
+                                        ),
+                                        _react2.default.createElement('br', null)
+                                    ) : ""
+                                ),
                                 _this4.state[key + "isExpanded"] || example.data[key].type !== "object" ? _react2.default.createElement(ValueExample, { example: example.data[key] }) : null
                             );
                         })
                     )
+                );
+            } else if (example.type === "array") {
+                return _react2.default.createElement(
+                    'span',
+                    { style: { float: "left" } },
+                    _react2.default.createElement(
+                        'div',
+                        null,
+                        'Array',
+                        _react2.default.createElement(
+                            'button',
+                            { onClick: function onClick() {
+                                    return _this4.setState({ arrayIsExpanded: !_this4.state.arrayIsExpanded });
+                                } },
+                            this.state.arrayIsExpanded ? "-" : "+"
+                        )
+                    ),
+                    this.state.arrayIsExpanded || this.props.isRoot ? _react2.default.createElement(
+                        'div',
+                        null,
+                        _react2.default.createElement(
+                            'div',
+                            null,
+                            '['
+                        ),
+                        _react2.default.createElement(
+                            'div',
+                            null,
+                            example.items.map(function (item) {
+                                return _react2.default.createElement(
+                                    'div',
+                                    null,
+                                    _react2.default.createElement(
+                                        'div',
+                                        { style: { paddingLeft: 20 } },
+                                        item.type === "object" ? _react2.default.createElement(
+                                            'div',
+                                            null,
+                                            'Object'
+                                        ) : "",
+                                        _react2.default.createElement(ValueExample, { example: item })
+                                    ),
+                                    _react2.default.createElement(
+                                        'div',
+                                        null,
+                                        ','
+                                    )
+                                );
+                            })
+                        ),
+                        _react2.default.createElement(
+                            'div',
+                            null,
+                            ']'
+                        )
+                    ) : null
                 );
             } else {
                 return _react2.default.createElement(

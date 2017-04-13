@@ -43,20 +43,21 @@ class ValueExample extends Component {
                 <span style={{paddingLeft: 20, display: "inline-block"}}>
                     {
                         Object.keys(example.data).map((key) => {
-                            return <div>
-                                <span style={{color: "purple"}}>{key}</span>: 
-                                <pre style={{display: "inline"}}> </pre>
-                                {example.data[key].type === "object" ? 
-                                    <span>Object 
-                                    <button onClick={() => this.setState({
-                                        [key + "isExpanded"]: !this.state[key + "isExpanded"]
-                                    })}>
-                                        {this.state[key + "isExpanded"] ? "-" : "+" }
-                                    </button>
-                                    
-                                    <br/></span>
-                                    : ""}
-                                
+                            return <div style={{overflow: "hidden"}}>
+                                <div style={{float: "left"}}>
+                                    <span style={{color: "purple"}}>{key}</span>: 
+                                    <pre style={{display: "inline"}}> </pre>
+                                    {example.data[key].type === "object" ? 
+                                        <span>Object 
+                                        <button onClick={() => this.setState({
+                                            [key + "isExpanded"]: !this.state[key + "isExpanded"]
+                                        })}>
+                                            {this.state[key + "isExpanded"] ? "-" : "+" }
+                                        </button>
+                                        
+                                        <br/></span>
+                                        : ""}
+                                </div>    
                                 {(this.state[key + "isExpanded"] || example.data[key].type !== "object") ? 
                                     <ValueExample example={example.data[key]} />
                                     : null
@@ -67,6 +68,33 @@ class ValueExample extends Component {
                     }
                 </span>
         
+            </span>
+        } else if (example.type === "array") {
+            return <span style={{float: "left"}}>
+                <div>
+                    Array
+                    <button onClick={() => this.setState({arrayIsExpanded: !this.state.arrayIsExpanded}) }>
+                        {this.state.arrayIsExpanded ? "-" : "+" }
+                    </button>
+                </div>
+                { (this.state.arrayIsExpanded || this.props.isRoot) ? 
+                    <div>
+                        <div>[</div>
+                        <div>
+                            {example.items.map(item => 
+                                <div>
+                                    <div style={{paddingLeft: 20}}>
+                                        {item.type === "object" ? <div>Object</div>: ""}
+
+                                        <ValueExample example={item} />
+                                    </div>
+                                    <div>,</div>
+                                </div>
+                            )}
+                        </div>
+                        <div>]</div>
+                    </div>
+                : null }
             </span>
         } else {
             return <span>not handled</span>
