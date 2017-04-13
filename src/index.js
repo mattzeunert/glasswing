@@ -264,7 +264,9 @@ function renderInfo(info){
         }
     })
 
-    return `<html><body><pre>${m.toString().replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/OPENTAG/g, "<").replace(/CLOSETAG/g, ">")}</pre>
+    return `<html><body>
+    <meta charset="utf-8" /> 
+    <pre>${m.toString().replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/OPENTAG/g, "<").replace(/CLOSETAG/g, ">")}</pre>
         <div id="overlay"></div>
         <br><br><br>
         <div>ERRORS: <br>${errors.join("<br>")}</div>
