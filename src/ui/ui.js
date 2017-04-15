@@ -1,5 +1,40 @@
-import React, {Component} from 'react';
-import {render} from 'react-dom';
+import React, {Component} from 'react'
+import {render} from 'react-dom'
+import _ from "lodash"
+
+window.start = function(){
+    window.editor = monaco.editor.create(document.getElementById("code-container"), {
+        value: window.code,
+        language: "javascript"
+    });
+
+    var decorations = Object.keys(locations).map(function(key){
+        var location = locations[key].loc
+        var type = locations[key].type
+        var start = location.start
+        var end = location.end
+        debugger
+        if (type === "returnStatement") {
+            end = {line: start.line, column: start.column + "return".length }
+        }
+        if (type === "call"  ) {
+            console.log("TODO: INSERT STH WITH RETVAL instead...")
+        }
+        start.column++
+        end.column++
+        return  {
+            range: new monaco.Range(start.line, start.column, end.line, end.column),
+            options: {
+                isWholeLine: false,
+                inlineClassName: "value value-" + key
+            }
+        }
+        console.log(location.loc)
+    })
+
+    editor.deltaDecorations([], decorations);
+}
+
 
 var setState = null
 
@@ -19,7 +54,7 @@ class OverlayContent extends Component {
         if (this.state.examples) {
             var examples = this.state.examples.examples
             window.openingId++
-            return <div style={{fontFamily: "monospace"}}>
+            return <div style={{fontFamily: "monospace", cursor: "default"}}>
                 <ValueExample key={window.openingId} example={examples[0]} isRoot={true} />
             </div>
         }
@@ -103,7 +138,7 @@ class ValueExample extends Component {
                     }}>{isExpanded(path) ? "▼" : "▶"}</span>
                 } else {
                     // keep space free
-                    expand = <span style={{visibility: "hidden", marginRight: -5}}>▼</span>
+                    expand = <span style={{visibility: "hidden",fontSize: 10, marginRight: -5}}>▼</span>
                 }
                 let p = path.join(".")
                 items.push(<div onClick={
@@ -172,15 +207,15 @@ document.querySelectorAll("[data-value-id]").forEach(function(el){
 document.body.addEventListener("mouseover", function(e){
     var el = e.target
     console.log(el)
-    var valId = el.getAttribute("data-value-id")
-    if (!valId){return}
+    if (el.className.indexOf("value") === -1) {
+        return
+    }
+    
+    var valId = el.className.split(" ").filter(c => c.indexOf("value-") !== -1)[0].replace(/[^0-9]/g,"")
     var vals = window.values[valId]
     if (!vals) {
         vals = []
     }
-
-    
-
     var overlay = document.getElementById("overlay")
     overlay.style.display = "block"
     overlay.setAttribute("style",

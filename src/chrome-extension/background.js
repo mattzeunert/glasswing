@@ -24,7 +24,7 @@ chrome.runtime.onMessage.addListener(function(request, sender) {
  chrome.webRequest.onBeforeRequest.addListener(
         function(details) {
             
-            if (details.url.indexOf("7777") !== -1 && details.type =="main_frame") {
+            if (details.url.indexOf("localhost:7777") !== -1 && details.type =="main_frame") {
                 tabId = details.tabId
 
                 

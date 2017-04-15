@@ -46,6 +46,12 @@ app.use( bodyParser.json({limit: "300mb"}) );
 app.use(function(req, res){
     console.log(req.url)
 
+    if (req.url.indexOf("/node_modules/monaco-editor") !== -1) {
+        res.end(fs.readFileSync("./" + req.url).toString())
+        console.log("MM")
+        return
+    }
+
     if (req.url.indexOf("/browse") !== -1) {
         var url = decodeURIComponent(req.url).replace("/browse?", "")
 
@@ -224,8 +230,57 @@ app.use(function(req, res){
     
 });
 
-
 function renderInfo(info){
+    var res = {}
+    Object.keys(info.values).forEach(function(key){
+        var values = info.values[key]
+        if (values.length === 0) {
+            res[key] = null
+        } else {
+            res[key] = {
+                type: null, // types are out of scope for now
+                examples: values.slice(0, 1)
+            }
+        }
+    })
+
+     return `<html><body>
+    <meta charset="utf-8" />    
+        <div id="code-container" style="height: 500px">
+            <style>
+                .value {
+                    border-bottom: 1px solid red;
+                    cursor: pointer;
+                }
+            </style>
+        </div>
+        <div id="overlay"></div>
+        <br><br><br>
+        
+
+            <script src="../node_modules/monaco-editor/min/vs/loader.js"></script>
+<script>
+	require.config({ paths: { 'vs': '/node_modules/monaco-editor/min/vs' }});
+	require(['vs/editor/editor.main'], function() {
+        start()
+		
+	});
+</script>
+
+        <script>
+            
+            window.values = JSON.parse(decodeURI("${encodeURI(JSON.stringify(res))}"));
+            window.code = decodeURI("${encodeURI(info.code)}");
+            window.locations = JSON.parse(decodeURI("${encodeURI(JSON.stringify(info.locations))}"));
+
+            ${require("fs").readFileSync("src/ui/lodash.js").toString()}
+            ${require("fs").readFileSync("src/ui/dist/bundle.js").toString()}            
+        </script>
+        </body></body>`
+}
+
+
+function renderInfoOldUnused(info){
     var m = new MagicString(info.code)
     var errors = []
     Object.keys(info.locations).forEach(function(id){
