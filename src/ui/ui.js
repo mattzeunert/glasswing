@@ -3,6 +3,8 @@ import {render} from 'react-dom';
 
 var setState = null
 
+window.openingId = 1;
+
 class OverlayContent extends Component {
     constructor(props){
         super(props)
@@ -16,8 +18,10 @@ class OverlayContent extends Component {
     render(){
         if (this.state.examples) {
             var examples = this.state.examples.examples
-            
-            return <ValueExample example={examples[0]} isRoot={true} />
+            window.openingId++
+            return <div style={{fontFamily: "monospace"}}>
+                <ValueExample key={window.openingId} example={examples[0]} isRoot={true} />
+            </div>
         }
         return <div>no examples </div>
     }
@@ -34,6 +38,32 @@ function getValueFromExample(example){
         return "(function)"
     } else {
         return example
+    }
+}
+
+class Preview extends Component {
+    render(){
+        var val = this.props.value
+        if (typeof val === "number") {
+            return <span style={{color: "blue"}}>{val}</span>
+        }
+        if (typeof val === "boolean") {
+            return <span style={{color: "blue"}}>{val}</span>
+        }
+        if (val.type === "Too Deep") {
+            return <span>Too deep, no data</span>
+        }
+        if (val.type === "string") {
+            return <span style={{color: "red"}}>{val.text}</span>
+        }
+        if (val.type === "object") {
+            return <span>(Object)</span>
+        }
+        if (val.type === "array"){
+            return <span>(Array)</span>
+        }
+        return <span>(No preview)</span>
+
     }
 }
 
@@ -61,27 +91,48 @@ class ValueExample extends Component {
         }
         function traverse(e){
             depth++;
+            function each(key, val){
+                path.push(key)
+                var expand = null;
+                var canExpand = val.type === "object" || val.type==="Array"
+                if (canExpand) {
+                    expand = <span style={{
+                            color: "#777",
+                            fontSize: 10,
+                            marginRight: -5
+                    }}>{isExpanded(path) ? "▼" : "▶"}</span>
+                } else {
+                    // keep space free
+                    expand = <span style={{visibility: "hidden", marginRight: -5}}>▼</span>
+                }
+                let p = path.join(".")
+                items.push(<div onClick={
+                    () => {
+                        var newExpandedPaths = t.state.expandedPaths.slice()
+                        if (t.state.expandedPaths.indexOf(p) === -1){
+                            newExpandedPaths = newExpandedPaths.concat([p])
+                        } else {
+                            newExpandedPaths = _.reject(newExpandedPaths, pp => pp === p)
+                        }
+                        t.setState({expandedPaths: newExpandedPaths})
+                    }
+                } style={{paddingLeft: (depth + 1) * 20}}>
+                    {expand} <span style={{color: "purple"}}>{key}</span>: <Preview value={val} />
+                </div>)
+                traverse(val)
+                path.pop()
+            }
             if (e && e.type === "object") {
                 if (depth === 0 || isExpanded(path)) {
                     Object.keys(e.data).forEach(function(key){
-                        path.push(key)
-                        var val = e.data[key]
-                        let p = path.join(".")
-                        items.push(<div onClick={() => t.setState({expandedPaths: t.state.expandedPaths.concat([p])})} style={{paddingLeft: depth * 20}}>{key} => preview [{path.join(".")}]</div>)
-                        traverse(val)
-                        path.pop()
+                        each(key, e.data[key])
                     })
                 }
             }
             if (e && e.type === "array") {
                 if (depth === 0 || isExpanded(path)) {
                     e.items.forEach(function(item, key){
-                        path.push(key)
-                        var val = item
-                        let p = path.join(".")
-                        items.push(<div onClick={() => t.setState({expandedPaths: t.state.expandedPaths.concat([p])})} style={{paddingLeft: depth * 20}}>{key} => preview [{path.join(".")}]</div>)
-                        traverse(val)
-                        path.pop()
+                        each(key, item)
                     })
                 }
             }
@@ -90,141 +141,10 @@ class ValueExample extends Component {
         }
         traverse(example)
         console.log("items", items)
-        return <div>{items}</div>
-        /*return <ObjectInspector
-            data={example}
-            nodeRenderer={
-                ({ depth, name, data, isNonenumerable }) => {
-                    if (data.type === "object"){ 
-                        data = data.data
-                    }
-                    else if (data.type === "array") {
-                        data = data.items
-                    }
-                    else if (data.type === "string") {
-                        data = data.text
-                    }
-                    console.log(data)
-                    return (depth === 0) ? <ObjectRootLabel name={name} data={data} />
-                  : <ObjectLabel name={name} data={data} isNonenumerable={isNonenumerable} />
-                }
-            }
-            />*/
-        var ret = null
-        if (typeof example === "number") {
-            ret = {
-                preview: <span style={{color: "blue"}}>{example}</span>
-            }
-        }
-        else if (example.type === "string") {
-            ret = {
-                preview: <span style={{color: "red"}}>"{example.text}"</span>
-            }
-        } else if (example.type === "object") {
-            var children = {}
-            Object.keys(example.data).forEach(key => {
-                children[key] = <ValueExample example={example.data[key]} />
-            })
-            ret = {
-                preview: <span>"object"</span>,
-                children
-            }
-
-            /*return <span style={{overflow: "hidden"}}>
-                {this.props.isRoot ? <div>Object</div> : null}
-                <span style={{paddingLeft: 20, display: "inline-block"}}>
-                    {
-                        Object.keys(example.data).map((key) => {
-                            return <div style={{overflow: "hidden"}}>
-                                <div style={{float: "left"}}>
-                                    <span style={{color: "purple"}}>{key}</span>: 
-                                    <pre style={{display: "inline"}}> </pre>
-                                    {example.data[key].type === "object" ? 
-                                        <span>Object 
-                                        <button onClick={() => this.setState({
-                                            [key + "isExpanded"]: !this.state[key + "isExpanded"]
-                                        })}>
-                                            {this.state[key + "isExpanded"] ? "-" : "+" }
-                                        </button>
-                                        
-                                        <br/></span>
-                                        : ""}
-                                </div>    
-                                {(this.state[key + "isExpanded"] || example.data[key].type !== "object") ? 
-                                    <ValueExample example={example.data[key]} />
-                                    : null
-                                }
-                                
-                            </div>
-                        })
-                    }
-                </span>
-        
-            </span>*/
-        } else if (example.type === "array") {
-            var children = {}
-            example.items.forEach(function(item, i){
-                children[i] = <ValueExample example={example.items[i]} />  
-            })
-            ret = {
-                preview: <span>array</span>,
-                children
-            }
-            /*return <span style={{float: "left"}}>
-                <div>
-                    Array
-                    <button onClick={() => this.setState({arrayIsExpanded: !this.state.arrayIsExpanded}) }>
-                        {this.state.arrayIsExpanded ? "-" : "+" }
-                    </button>
-                </div>
-                { (this.state.arrayIsExpanded || this.props.isRoot) ? 
-                    <div>
-                        <div>[</div>
-                        <div>
-                            {example.items.map(item => 
-                                <div>
-                                    <div style={{paddingLeft: 20}}>
-                                        {item.type === "object" ? <div>Object</div>: ""}
-
-                                        <ValueExample example={item} />
-                                    </div>
-                                    <div>,</div>
-                                </div>
-                            )}
-                        </div>
-                        <div>]</div>
-                    </div>
-                : null }
-            </span>*/
-        } else {
-            ret = {
-                preview: <span>not handled</span>
-            }
-        }
-
-        if (!this.state.isExpanded) {
-            console.log("ret", ret)
-            return <div>
-                {ret.children ? <button onClick={() => this.setState({isExpanded: true})}>+</button> : null}
-                {ret.preview}
-            </div>
-        } else {
-            var children = Object.keys(ret.children).map(function(key){
-                return <div>
-                    <div style={{border: "1px solid blue", overflow: "hidden"}}>
-                        <div style={{float: "left"}}> {key} </div>
-                        <div style={{float: "left"}}> => </div>
-                    </div>
-                    <div> {ret.children[key]}</div>
-                </div>
-            })
-            return <div style={{border: "1px solid red"}}>
-                <div>{ret.preview}</div>
-                <span style={{display: "inline-block", paddingLeft: this.props.isRoot ? 20 : 0}}>
-                    {children}
-                </span>
-            </div>
-        }
+        return <div>
+            {this.props.isRoot ? <Preview value={example} /> : null}
+            {items}
+        </div>
     }
 }
 

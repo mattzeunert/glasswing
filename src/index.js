@@ -272,9 +272,8 @@ function renderInfo(info){
         <div>ERRORS: <br>${errors.join("<br>")}</div>
         <script>
             window.values = JSON.parse(decodeURI("${encodeURI(JSON.stringify(res))}"));
-            ${require("fs").readFileSync("src/ui/dist/bundle.js").toString()}
-
-            
+            ${require("fs").readFileSync("src/ui/lodash.js").toString()}
+            ${require("fs").readFileSync("src/ui/dist/bundle.js").toString()}            
         </script>
         </body></body>`
 }
