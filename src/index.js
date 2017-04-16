@@ -52,6 +52,10 @@ app.use(function(req, res){
         console.log("MM")
         return
     }
+    if (req.url === "/__jscb/bundle.js") {
+        res.end(fs.readFileSync("src/ui/dist/bundle.js").toString())
+        return
+    }
 
     if (req.url.indexOf("/browse") !== -1) {
         var url = decodeURIComponent(req.url).replace("/browse?", "")
@@ -287,14 +291,7 @@ function renderInfo(info){
         <br><br><br>
         
 
-            <script src="../node_modules/monaco-editor/min/vs/loader.js"></script>
-<script>
-	require.config({ paths: { 'vs': '/node_modules/monaco-editor/min/vs' }});
-	require(['vs/editor/editor.main'], function() {
-        start()
-		
-	});
-</script>
+         
 
         <script>
             
@@ -303,8 +300,17 @@ function renderInfo(info){
             window.locations = JSON.parse(decodeURI("${encodeURI(JSON.stringify(info.locations))}"));
 
             ${require("fs").readFileSync("src/ui/lodash.js").toString()}
-            ${require("fs").readFileSync("src/ui/dist/bundle.js").toString()}            
         </script>
+        <script src="/__jscb/bundle.js"></script>
+
+           <script src="../node_modules/monaco-editor/min/vs/loader.js"></script>
+<script>
+	require.config({ paths: { 'vs': '/node_modules/monaco-editor/min/vs' }});
+	require(['vs/editor/editor.main'], function() {
+        start()
+		
+	});
+</script>
         </body></body>`
 }
 

@@ -10,6 +10,10 @@ window.start = function(){
 
     var decorations = Object.keys(locations).map(function(key){
         var location = locations[key].loc
+        if (!location) {
+            console.log("not sure wht this is... look into, no location info")
+            return
+        }
         var type = locations[key].type
         var start = location.start
         var end = location.end
