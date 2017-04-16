@@ -19,6 +19,7 @@ var compiler = new Compiler()
 
 function DataStore(options){
     this.values = {}
+    this.url = options.url
     this.locations = options.locations
     this.code = options.code
 }
@@ -73,7 +74,11 @@ app.use(function(req, res){
         console.log("scriptId", scriptId, "locId", locationId)
         var store = dataStores[scriptId]
         var loc = store.locations[locationId]
-        res.end(store.code.slice(loc.start, loc.end))
+        var json = {
+            text: store.code.slice(loc.start, loc.end),
+            url: "/browse?" + encodeURIComponent(store.url) + "#" + loc.loc.start.line
+        }
+        res.end(JSON.stringify(json))
         return
     }
 
@@ -102,7 +107,8 @@ app.use(function(req, res){
 
                 dataStores[scriptId] = new DataStore({
                     code: response,
-                    locations: compiled.locations
+                    locations: compiled.locations,
+                    url: req.body.url
                 })
 
                 response = compiled.code

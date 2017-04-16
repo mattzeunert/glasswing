@@ -36,12 +36,30 @@ window.start = function(){
                 inlineClassName: "value value-" + key
             }
         }
+
+        
         console.log(location.loc)
     })
     decorations = decorations.filter(x => x !== undefined)
+
+    goToLineInHash()
     editor.deltaDecorations([], decorations);
 }
 
+
+window.onhashchange  = function(){
+    goToLineInHash()
+}
+
+function goToLineInHash(){
+    var line = parseFloat(location.hash.replace("#", ""))
+    if (line) {
+        var LINE_HEIGHT = 18
+        editor.setScrollTop((line - 2) * LINE_HEIGHT)
+        editor.setSelection(new monaco.Range(line, 1, line, 1000))
+    }
+}
+window.goToLineInHash = goToLineInHash
 
 var setState = null
 
@@ -75,13 +93,21 @@ class FunctionPreview extends Component {
         this.state = {}
     }
     componentDidMount(){
-        fetch("/__jscb/fetchFunctionCode/" + this.props.scriptId + "/" + this.props.locationId)
-        .then(t => t.text())
-        .then(text => this.setState({text}))
+        var value = this.props.value;
+        if (!value.scriptId) {
+            this.setState({text: value.text})
+        } else {
+            fetch("/__jscb/fetchFunctionCode/" + value.scriptId + "/" + value.locationId)
+            .then(t => t.json())
+            .then(json => this.setState({
+                text: json.text,
+                url: json.url
+            }))   
+        }
     }
     render(){
         return <div>
-            (Function) <button>Go to definition</button><br/>
+            (Function) <button onClick={() => window.location = this.state.url}>Go to definition</button><br/>
             {this.state.text}
         </div>
     }
@@ -114,7 +140,7 @@ class Preview extends Component {
             </span>
         }
         if (val.type === "function") {
-            return <FunctionPreview scriptId={val.scriptId} locationId={val.locationId} />
+            return <FunctionPreview value={val} />
         }
         return <span>(No preview)</span>
 

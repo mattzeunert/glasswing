@@ -53,7 +53,14 @@ function inittt() {
                 return value
             }
             else if (typeof value === "function") {
-                var fnIdentifier = value.toString().match(/__jscbFM\(([0-9]+, ?[0-9]+)\)/)[1]
+                var match = value.toString().match(/__jscbFM\(([0-9]+, ?[0-9]+)\)/)
+                if (!match){
+                    return {
+                        type: "function",
+                        text: value.toString().slice(0, 100)
+                    }
+                }
+                var fnIdentifier = match[1]
                 fnIdentifier = fnIdentifier.replace(/[^0-9,]/g,"")
                 var parts = fnIdentifier.split(",").map(s => parseFloat(s))
                 console.log("function", parts)

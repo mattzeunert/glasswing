@@ -9877,13 +9877,30 @@ window.start = function () {
                 inlineClassName: "value value-" + key
             }
         };
+
         console.log(location.loc);
     });
     decorations = decorations.filter(function (x) {
         return x !== undefined;
     });
+
+    goToLineInHash();
     editor.deltaDecorations([], decorations);
 };
+
+window.onhashchange = function () {
+    goToLineInHash();
+};
+
+function goToLineInHash() {
+    var line = parseFloat(location.hash.replace("#", ""));
+    if (line) {
+        var LINE_HEIGHT = 18;
+        editor.setScrollTop((line - 2) * LINE_HEIGHT);
+        editor.setSelection(new monaco.Range(line, 1, line, 1000));
+    }
+}
+window.goToLineInHash = goToLineInHash;
 
 var setState = null;
 
@@ -9950,22 +9967,34 @@ var FunctionPreview = function (_Component2) {
         value: function componentDidMount() {
             var _this4 = this;
 
-            fetch("/__jscb/fetchFunctionCode/" + this.props.scriptId + "/" + this.props.locationId).then(function (t) {
-                return t.text();
-            }).then(function (text) {
-                return _this4.setState({ text: text });
-            });
+            var value = this.props.value;
+            if (!value.scriptId) {
+                this.setState({ text: value.text });
+            } else {
+                fetch("/__jscb/fetchFunctionCode/" + value.scriptId + "/" + value.locationId).then(function (t) {
+                    return t.json();
+                }).then(function (json) {
+                    return _this4.setState({
+                        text: json.text,
+                        url: json.url
+                    });
+                });
+            }
         }
     }, {
         key: 'render',
         value: function render() {
+            var _this5 = this;
+
             return _react2.default.createElement(
                 'div',
                 null,
                 '(Function) ',
                 _react2.default.createElement(
                     'button',
-                    null,
+                    { onClick: function onClick() {
+                            return window.location = _this5.state.url;
+                        } },
                     'Go to definition'
                 ),
                 _react2.default.createElement('br', null),
@@ -10038,7 +10067,7 @@ var Preview = function (_Component3) {
                 );
             }
             if (val.type === "function") {
-                return _react2.default.createElement(FunctionPreview, { scriptId: val.scriptId, locationId: val.locationId });
+                return _react2.default.createElement(FunctionPreview, { value: val });
             }
             return _react2.default.createElement(
                 'span',
@@ -10057,12 +10086,12 @@ var ValueExample = function (_Component4) {
     function ValueExample(props) {
         _classCallCheck(this, ValueExample);
 
-        var _this6 = _possibleConstructorReturn(this, (ValueExample.__proto__ || Object.getPrototypeOf(ValueExample)).call(this, props));
+        var _this7 = _possibleConstructorReturn(this, (ValueExample.__proto__ || Object.getPrototypeOf(ValueExample)).call(this, props));
 
-        _this6.state = {
+        _this7.state = {
             expandedPaths: []
         };
-        return _this6;
+        return _this7;
     }
 
     _createClass(ValueExample, [{
