@@ -69,6 +69,13 @@ function getPlugin(scriptId, js){
                     ))
 
                 },
+                AssignmentExpression: function(path){
+                    var call = makeRecordValueCall(
+                        path.node.left,
+                        path.node.right
+                    )
+                    path.node.right = call
+                },
                 MemberExpression: function(path){
                     if (path.parent.type === "MemberExpression") {
                         return;

@@ -109,7 +109,7 @@ class FunctionPreview extends Component {
     }
     render(){
         return <div>
-            (Function) <button onClick={() => window.location = this.state.url}>Go to definition</button><br/>
+            (Function) {this.props.value.scriptId ? <button onClick={() => window.location = this.state.url}>Go to definition</button> : null}<br/>
             <pre>{this.state.text ? this.state.text.split(/\n/g).slice(0, 10).join("\n") : null}</pre>
         </div>
     }
@@ -121,8 +121,9 @@ class Preview extends Component {
         if (typeof val === "number") {
             return <span style={{color: "blue"}}>{val}</span>
         }
+        console.log("value", val)
         if (typeof val === "boolean") {
-            return <span style={{color: "blue"}}>{val}</span>
+            return <span style={{color: "blue"}}>{val + ""}</span>
         }
         if (val.type === "Too Deep") {
             return <span>Too deep, no data</span>

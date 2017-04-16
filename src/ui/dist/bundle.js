@@ -9994,13 +9994,13 @@ var FunctionPreview = function (_Component2) {
                 'div',
                 null,
                 '(Function) ',
-                _react2.default.createElement(
+                this.props.value.scriptId ? _react2.default.createElement(
                     'button',
                     { onClick: function onClick() {
                             return window.location = _this5.state.url;
                         } },
                     'Go to definition'
-                ),
+                ) : null,
                 _react2.default.createElement('br', null),
                 _react2.default.createElement(
                     'pre',
@@ -10034,11 +10034,12 @@ var Preview = function (_Component3) {
                     val
                 );
             }
+            console.log("value", val);
             if (typeof val === "boolean") {
                 return _react2.default.createElement(
                     'span',
                     { style: { color: "blue" } },
-                    val
+                    val + ""
                 );
             }
             if (val.type === "Too Deep") {

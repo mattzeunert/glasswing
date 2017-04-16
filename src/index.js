@@ -48,7 +48,7 @@ app.use(function(req, res){
     console.log(req.url)
 
     if (req.url.indexOf("/node_modules/monaco-editor") !== -1) {
-        res.end(fs.readFileSync("./" + req.url).toString())
+        res.end(fs.readFileSync("./" + req.url.replace(/\.\./g, "")).toString())
         console.log("MM")
         return
     }
