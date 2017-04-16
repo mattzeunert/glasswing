@@ -10034,7 +10034,6 @@ var Preview = function (_Component3) {
                     val
                 );
             }
-            console.log("value", val);
             if (typeof val === "boolean") {
                 return _react2.default.createElement(
                     'span',
@@ -10077,6 +10076,22 @@ var Preview = function (_Component3) {
             }
             if (val.type === "function") {
                 return _react2.default.createElement(FunctionPreview, { value: val });
+            }
+            if (val.type === "jQuery Object") {
+                return _react2.default.createElement(
+                    'span',
+                    null,
+                    'jQuery Object [',
+                    val.elementCount,
+                    ']'
+                );
+            }
+            if (val.type === "HTMLElement") {
+                return _react2.default.createElement(
+                    'span',
+                    null,
+                    "<" + val.tagName.toLowerCase() + ">" + val.innerHTML + "<" + val.tagName.toLowerCase() + ">"
+                );
             }
             return _react2.default.createElement(
                 'span',
@@ -10125,7 +10140,7 @@ var ValueExample = function (_Component4) {
                 function each(key, val) {
                     path.push(key);
                     var expand = null;
-                    var canExpand = val.type === "object" || val.keyCount > 0 || val.type === "array" && val.itemCount > 0;
+                    var canExpand = val.type === "object" || val.keyCount > 0 || val.type === "array" && val.itemCount > 0 || val.type === "jQuery Object" && val.elementCount > 0;
                     if (canExpand) {
                         expand = _react2.default.createElement(
                             'span',
@@ -10181,6 +10196,13 @@ var ValueExample = function (_Component4) {
                 if (e && e.type === "array") {
                     if (depth === 0 || isExpanded(path)) {
                         e.items.forEach(function (item, key) {
+                            each(key, item);
+                        });
+                    }
+                }
+                if (e && e.type === "jQuery Object") {
+                    if (depth === 0 || isExpanded(path)) {
+                        e.elements.forEach(function (item, key) {
                             each(key, item);
                         });
                     }

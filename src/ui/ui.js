@@ -121,7 +121,6 @@ class Preview extends Component {
         if (typeof val === "number") {
             return <span style={{color: "blue"}}>{val}</span>
         }
-        console.log("value", val)
         if (typeof val === "boolean") {
             return <span style={{color: "blue"}}>{val + ""}</span>
         }
@@ -144,6 +143,16 @@ class Preview extends Component {
         }
         if (val.type === "function") {
             return <FunctionPreview value={val} />
+        }
+        if (val.type === "jQuery Object") {
+            return <span>
+                jQuery Object [{val.elementCount}]
+            </span>
+        }
+        if (val.type === "HTMLElement") {
+            return <span>
+                {"<" + val.tagName.toLowerCase() + ">" + val.innerHTML + "<" + val.tagName.toLowerCase() + ">"}
+            </span>
         }
         return <span>(No preview)</span>
 
@@ -177,7 +186,9 @@ class ValueExample extends Component {
             function each(key, val){
                 path.push(key)
                 var expand = null;
-                var canExpand = (val.type === "object" || val.keyCount > 0) || (val.type === "array" && val.itemCount > 0) 
+                var canExpand = (val.type === "object" || val.keyCount > 0) ||
+                    (val.type === "array" && val.itemCount > 0) || 
+                    (val.type === "jQuery Object" && val.elementCount > 0)
                 if (canExpand) {
                     expand = <span style={{
                             color: "#777",
@@ -219,6 +230,14 @@ class ValueExample extends Component {
                     })
                 }
             }
+            if (e && e.type === "jQuery Object") {
+                if (depth === 0 || isExpanded(path)) {
+                    e.elements.forEach(function(item, key){
+                        each(key, item)
+                    })
+                }
+            }
+            
             
             depth--;
         }

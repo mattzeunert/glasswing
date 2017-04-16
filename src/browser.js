@@ -74,7 +74,8 @@ function inittt() {
                 return {
                     type: "HTMLElement",
                     tagName: value.tagName,
-                    children: Array.prototype.map.call(value.children, c => serialize(c))
+                    innerHTML: value.innerHTML.slice(0, 100)
+                    // children: Array.prototype.map.call(value.children, c => serialize(c))
                 }
             }
             else if (value && value.length && value.map === Array.prototype.map) {
@@ -90,6 +91,7 @@ function inittt() {
                 }
                 return {
                     type: "jQuery Object",
+                    elementCount: value.length, 
                     elements
                 }
             } else if (typeof value === "object") {
