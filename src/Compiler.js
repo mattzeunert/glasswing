@@ -76,6 +76,14 @@ function getPlugin(scriptId, js){
                     )
                     path.node.right = call
                 },
+                VariableDeclarator: function(path){
+                    if (!path.node.init) {return}
+                    var call = makeRecordValueCall(
+                        path.node.id,
+                        path.node.init
+                    )
+                    path.node.init = call
+                },
                 MemberExpression: function(path){
                     if (path.parent.type === "MemberExpression") {
                         return;
