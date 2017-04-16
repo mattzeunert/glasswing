@@ -63,7 +63,7 @@ function inittt() {
                 var fnIdentifier = match[1]
                 fnIdentifier = fnIdentifier.replace(/[^0-9,]/g,"")
                 var parts = fnIdentifier.split(",").map(s => parseFloat(s))
-                console.log("function", parts)
+                // console.log("function", parts)
                 return {
                     type: "function",
                     scriptId: parts[0],

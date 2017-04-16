@@ -275,6 +275,9 @@ function renderInfo(info){
                     border-bottom: 1px solid red;
                     cursor: pointer;
                 }
+                .value--no-data {
+                    border-bottom: 1px solid gray;
+                }
                 .monaco-editor-hover {
                     display: none; // hide monaco type annotations
                 }

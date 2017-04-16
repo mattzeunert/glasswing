@@ -9874,7 +9874,7 @@ window.start = function () {
             range: new monaco.Range(start.line, start.column, end.line, end.column),
             options: {
                 isWholeLine: false,
-                inlineClassName: "value value-" + key
+                inlineClassName: "value value-" + key + " " + (values[key] && values[key].examples && values[key].examples.length ? "" : "value--no-data")
             }
         };
 
@@ -9936,7 +9936,11 @@ var OverlayContent = function (_Component) {
                 return _react2.default.createElement(
                     'div',
                     { style: { fontFamily: "monospace", cursor: "default" } },
-                    _react2.default.createElement(ValueExample, { key: window.openingId, example: examples[0], isRoot: true })
+                    (examples && examples.length) > 0 ? _react2.default.createElement(ValueExample, { key: window.openingId, example: examples[0], isRoot: true }) : _react2.default.createElement(
+                        'span',
+                        null,
+                        'No value captured, this code didn\'t run.'
+                    )
                 );
             }
             return _react2.default.createElement(
@@ -9998,7 +10002,11 @@ var FunctionPreview = function (_Component2) {
                     'Go to definition'
                 ),
                 _react2.default.createElement('br', null),
-                this.state.text
+                _react2.default.createElement(
+                    'pre',
+                    null,
+                    this.state.text ? this.state.text.split(/\n/g).slice(0, 10).join("\n") : null
+                )
             );
         }
     }]);
@@ -10277,7 +10285,7 @@ document.body.addEventListener("mouseover", function (e) {
 
 document.body.addEventListener("mouseout", function (e) {
     var el = e.target;
-    console.log(el);
+    {/*console.log(el)*/}
     var valId = el.getAttribute("data-value-id");
     var overlay = document.getElementById("overlay");
     // overlay.style.display = "none"

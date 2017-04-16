@@ -33,7 +33,7 @@ window.start = function(){
             range: new monaco.Range(start.line, start.column, end.line, end.column),
             options: {
                 isWholeLine: false,
-                inlineClassName: "value value-" + key
+                inlineClassName: "value value-" + key + " " + ((values[key] && values[key].examples && values[key].examples.length) ? "" : "value--no-data")
             }
         }
 
@@ -80,7 +80,9 @@ class OverlayContent extends Component {
             var examples = this.state.examples.examples
             window.openingId++
             return <div style={{fontFamily: "monospace", cursor: "default"}}>
-                <ValueExample key={window.openingId} example={examples[0]} isRoot={true} />
+                { (examples && examples.length) > 0 ? 
+                    <ValueExample key={window.openingId} example={examples[0]} isRoot={true}/>
+                : <span>No value captured, this code didn't run.</span> }
             </div>
         }
         return <div>no examples </div>
@@ -108,7 +110,7 @@ class FunctionPreview extends Component {
     render(){
         return <div>
             (Function) <button onClick={() => window.location = this.state.url}>Go to definition</button><br/>
-            {this.state.text}
+            <pre>{this.state.text ? this.state.text.split(/\n/g).slice(0, 10).join("\n") : null}</pre>
         </div>
     }
 }
@@ -315,7 +317,7 @@ document.body.addEventListener("mouseover", function(e){
 
 document.body.addEventListener("mouseout", function(e){
     var el = e.target
-    console.log(el)
+    {/*console.log(el)*/}
     var valId = el.getAttribute("data-value-id")
     var overlay = document.getElementById("overlay")
     // overlay.style.display = "none"
