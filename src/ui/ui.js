@@ -16,6 +16,9 @@ window.start = function(){
         if (type === "returnStatement") {
             end = {line: start.line, column: start.column + "return".length }
         }
+        if (type === "functionLocation") {
+            return
+        }
         console.log(type, start, end)
         if (type === "call"  ) {
             console.log("TODO: INSERT STH WITH RETVAL instead...")
@@ -66,17 +69,21 @@ class OverlayContent extends Component {
     }
 }
 
-function getValueFromExample(example){
-    if (example.type === "string") {
-        return example.text
-    }else if (example.type === "object"){
-        return example.data  
-    } else if (example.type === "array") {
-        return example.items
-    }if (example.type === "function") {
-        return "(function)"
-    } else {
-        return example
+class FunctionPreview extends Component {
+    constructor(props){
+        super(props)
+        this.state = {}
+    }
+    componentDidMount(){
+        fetch("/__jscb/fetchFunctionCode/" + this.props.scriptId + "/" + this.props.locationId)
+        .then(t => t.text())
+        .then(text => this.setState({text}))
+    }
+    render(){
+        return <div>
+            (Function) <button>Go to definition</button><br/>
+            {this.state.text}
+        </div>
     }
 }
 
@@ -105,6 +112,9 @@ class Preview extends Component {
             return <span>
                 (Array) [{val.itemCount}]
             </span>
+        }
+        if (val.type === "function") {
+            return <FunctionPreview scriptId={val.scriptId} locationId={val.locationId} />
         }
         return <span>(No preview)</span>
 
@@ -184,7 +194,7 @@ class ValueExample extends Component {
             depth--;
         }
         traverse(example)
-        console.log("items", items)
+        // console.log("items", items)
         return <div>
             {this.props.isRoot ? <Preview value={example} /> : null}
             {items}
@@ -215,7 +225,7 @@ document.querySelectorAll("[data-value-id]").forEach(function(el){
 
 document.body.addEventListener("mouseover", function(e){
     var el = e.target
-    console.log(el)
+    // console.log(el)
     if (el.className.indexOf("value") === -1) {
         return
     }

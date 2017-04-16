@@ -9857,6 +9857,9 @@ window.start = function () {
         if (type === "returnStatement") {
             end = { line: start.line, column: start.column + "return".length };
         }
+        if (type === "functionLocation") {
+            return;
+        }
         console.log(type, start, end);
         if (type === "call") {
             console.log("TODO: INSERT STH WITH RETVAL instead...");
@@ -9930,22 +9933,52 @@ var OverlayContent = function (_Component) {
     return OverlayContent;
 }(_react.Component);
 
-function getValueFromExample(example) {
-    if (example.type === "string") {
-        return example.text;
-    } else if (example.type === "object") {
-        return example.data;
-    } else if (example.type === "array") {
-        return example.items;
-    }if (example.type === "function") {
-        return "(function)";
-    } else {
-        return example;
-    }
-}
+var FunctionPreview = function (_Component2) {
+    _inherits(FunctionPreview, _Component2);
 
-var Preview = function (_Component2) {
-    _inherits(Preview, _Component2);
+    function FunctionPreview(props) {
+        _classCallCheck(this, FunctionPreview);
+
+        var _this3 = _possibleConstructorReturn(this, (FunctionPreview.__proto__ || Object.getPrototypeOf(FunctionPreview)).call(this, props));
+
+        _this3.state = {};
+        return _this3;
+    }
+
+    _createClass(FunctionPreview, [{
+        key: 'componentDidMount',
+        value: function componentDidMount() {
+            var _this4 = this;
+
+            fetch("/__jscb/fetchFunctionCode/" + this.props.scriptId + "/" + this.props.locationId).then(function (t) {
+                return t.text();
+            }).then(function (text) {
+                return _this4.setState({ text: text });
+            });
+        }
+    }, {
+        key: 'render',
+        value: function render() {
+            return _react2.default.createElement(
+                'div',
+                null,
+                '(Function) ',
+                _react2.default.createElement(
+                    'button',
+                    null,
+                    'Go to definition'
+                ),
+                _react2.default.createElement('br', null),
+                this.state.text
+            );
+        }
+    }]);
+
+    return FunctionPreview;
+}(_react.Component);
+
+var Preview = function (_Component3) {
+    _inherits(Preview, _Component3);
 
     function Preview() {
         _classCallCheck(this, Preview);
@@ -10004,6 +10037,9 @@ var Preview = function (_Component2) {
                     ']'
                 );
             }
+            if (val.type === "function") {
+                return _react2.default.createElement(FunctionPreview, { scriptId: val.scriptId, locationId: val.locationId });
+            }
             return _react2.default.createElement(
                 'span',
                 null,
@@ -10015,18 +10051,18 @@ var Preview = function (_Component2) {
     return Preview;
 }(_react.Component);
 
-var ValueExample = function (_Component3) {
-    _inherits(ValueExample, _Component3);
+var ValueExample = function (_Component4) {
+    _inherits(ValueExample, _Component4);
 
     function ValueExample(props) {
         _classCallCheck(this, ValueExample);
 
-        var _this4 = _possibleConstructorReturn(this, (ValueExample.__proto__ || Object.getPrototypeOf(ValueExample)).call(this, props));
+        var _this6 = _possibleConstructorReturn(this, (ValueExample.__proto__ || Object.getPrototypeOf(ValueExample)).call(this, props));
 
-        _this4.state = {
+        _this6.state = {
             expandedPaths: []
         };
-        return _this4;
+        return _this6;
     }
 
     _createClass(ValueExample, [{
@@ -10115,7 +10151,7 @@ var ValueExample = function (_Component3) {
                 depth--;
             }
             traverse(example);
-            console.log("items", items);
+            // console.log("items", items)
             return _react2.default.createElement(
                 'div',
                 null,
@@ -10150,7 +10186,7 @@ document.querySelectorAll("[data-value-id]").forEach(function (el) {
 
 document.body.addEventListener("mouseover", function (e) {
     var el = e.target;
-    console.log(el);
+    // console.log(el)
     if (el.className.indexOf("value") === -1) {
         return;
     }

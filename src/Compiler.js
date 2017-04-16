@@ -104,6 +104,27 @@ function getPlugin(scriptId, js){
                 t.expressionStatement(makeRecordValueCall(param, t.identifier(param.name)))
             )
         })
+        path.node.body.body.unshift(
+            t.expressionStatement(makeFunctionMarkerCall(path.node))
+        )
+    }
+    function makeFunctionMarkerCall(node){
+         var args = [
+            t.NumericLiteral(scriptId),
+            t.NumericLiteral(getValueId({
+                start: node.start,
+                end: node.end,
+                loc: node.loc,
+                type: "functionLocation"
+            }))
+        ]
+        var call = t.callExpression(
+            t.identifier("__jscbFM")
+            ,
+            args
+        )
+        call.ignore = true
+        return call
     }
     function makeRecordValueCall(node, value, memberExpressionParent, type){
         var args = [

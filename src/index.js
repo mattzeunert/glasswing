@@ -62,7 +62,21 @@ app.use(function(req, res){
         } else {
             res.end(renderInfo(info))
         }
+        
     }
+
+    if (req.url.indexOf("/__jscb/fetchFunctionCode") !== -1) {
+        var parts = req.url.split("/")
+        console.log(parts)
+        var locationId = parseFloat(parts.pop())
+        var scriptId = parseFloat(parts.pop())
+        console.log("scriptId", scriptId, "locId", locationId)
+        var store = dataStores[scriptId]
+        var loc = store.locations[locationId]
+        res.end(store.code.slice(loc.start, loc.end))
+        return
+    }
+
     // console.log("REQUEST", req.url)
     if (req.url.indexOf("/request") !== -1) {
         var id = req.url.split("/")[2]

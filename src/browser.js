@@ -53,8 +53,14 @@ function inittt() {
                 return value
             }
             else if (typeof value === "function") {
+                var fnIdentifier = value.toString().match(/__jscbFM\(([0-9]+, ?[0-9]+)\)/)[1]
+                fnIdentifier = fnIdentifier.replace(/[^0-9,]/g,"")
+                var parts = fnIdentifier.split(",").map(s => parseFloat(s))
+                console.log("function", parts)
                 return {
-                    type: "function"
+                    type: "function",
+                    scriptId: parts[0],
+                    locationId: parts[1]
                 }
             }
             else if (value instanceof HTMLElement) {
@@ -104,6 +110,10 @@ function inittt() {
             return "ERROR WHILE SERIALIZING"
         }
     }
+
+    window.__jscbFM = function(){
+        // don't need to do anything here...
+    }
     // todo: make sure all values are actually sent... probs best to test by setting valuestosend max to 1 or 2
     window.__jscbRV = function(scriptId, valueId, value, memberExpressionParent){
         return __jscb.recordValue.apply(this, arguments)
@@ -116,6 +126,7 @@ function inittt() {
         if (valuesToSend > 250000) {
             valuesToSend = 250000
         }
+        // debugger
         var body = JSON.stringify(recordedValueBuffer.slice(0, valuesToSend))
         console.time("Generate JSON")
         var body = "["
