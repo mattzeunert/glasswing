@@ -13,15 +13,19 @@ window.start = function(){
         var type = locations[key].type
         var start = location.start
         var end = location.end
-        debugger
         if (type === "returnStatement") {
             end = {line: start.line, column: start.column + "return".length }
         }
+        console.log(type, start, end)
         if (type === "call"  ) {
             console.log("TODO: INSERT STH WITH RETVAL instead...")
+         
+            return
         }
+
         start.column++
         end.column++
+        
         return  {
             range: new monaco.Range(start.line, start.column, end.line, end.column),
             options: {
@@ -31,7 +35,7 @@ window.start = function(){
         }
         console.log(location.loc)
     })
-
+    decorations = decorations.filter(x => x !== undefined)
     editor.deltaDecorations([], decorations);
 }
 
@@ -89,13 +93,18 @@ class Preview extends Component {
             return <span>Too deep, no data</span>
         }
         if (val.type === "string") {
-            return <span style={{color: "red"}}>{val.text}</span>
+            return <span style={{color: "red"}}>"{val.text}"</span>
         }
         if (val.type === "object") {
-            return <span>(Object)</span>
+            return <span>
+                (Object)
+                {val.keyCount === 0 ? " {}" : ""}
+            </span>
         }
         if (val.type === "array"){
-            return <span>(Array)</span>
+            return <span>
+                (Array) [{val.itemCount}]
+            </span>
         }
         return <span>(No preview)</span>
 
@@ -129,7 +138,7 @@ class ValueExample extends Component {
             function each(key, val){
                 path.push(key)
                 var expand = null;
-                var canExpand = val.type === "object" || val.type==="Array"
+                var canExpand = (val.type === "object" || val.keyCount > 0) || (val.type === "array" && val.itemCount > 0) 
                 if (canExpand) {
                     expand = <span style={{
                             color: "#777",

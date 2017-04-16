@@ -246,11 +246,17 @@ function renderInfo(info){
 
      return `<html><body>
     <meta charset="utf-8" />    
-        <div id="code-container" style="height: 500px">
+        <div id="code-container" style="height: 100%">
             <style>
+                body {
+                    margin: 0;
+                }
                 .value {
                     border-bottom: 1px solid red;
                     cursor: pointer;
+                }
+                .monaco-editor-hover {
+                    display: none; // hide monaco type annotations
                 }
             </style>
         </div>

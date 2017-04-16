@@ -9854,15 +9854,19 @@ window.start = function () {
         var type = locations[key].type;
         var start = location.start;
         var end = location.end;
-        debugger;
         if (type === "returnStatement") {
             end = { line: start.line, column: start.column + "return".length };
         }
+        console.log(type, start, end);
         if (type === "call") {
             console.log("TODO: INSERT STH WITH RETVAL instead...");
+
+            return;
         }
+
         start.column++;
         end.column++;
+
         return {
             range: new monaco.Range(start.line, start.column, end.line, end.column),
             options: {
@@ -9872,7 +9876,9 @@ window.start = function () {
         };
         console.log(location.loc);
     });
-
+    decorations = decorations.filter(function (x) {
+        return x !== undefined;
+    });
     editor.deltaDecorations([], decorations);
 };
 
@@ -9976,21 +9982,26 @@ var Preview = function (_Component2) {
                 return _react2.default.createElement(
                     'span',
                     { style: { color: "red" } },
-                    val.text
+                    '"',
+                    val.text,
+                    '"'
                 );
             }
             if (val.type === "object") {
                 return _react2.default.createElement(
                     'span',
                     null,
-                    '(Object)'
+                    '(Object)',
+                    val.keyCount === 0 ? " {}" : ""
                 );
             }
             if (val.type === "array") {
                 return _react2.default.createElement(
                     'span',
                     null,
-                    '(Array)'
+                    '(Array) [',
+                    val.itemCount,
+                    ']'
                 );
             }
             return _react2.default.createElement(
@@ -10040,7 +10051,7 @@ var ValueExample = function (_Component3) {
                 function each(key, val) {
                     path.push(key);
                     var expand = null;
-                    var canExpand = val.type === "object" || val.type === "Array";
+                    var canExpand = val.type === "object" || val.keyCount > 0 || val.type === "array" && val.itemCount > 0;
                     if (canExpand) {
                         expand = _react2.default.createElement(
                             'span',
