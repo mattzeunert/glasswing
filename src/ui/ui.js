@@ -131,6 +131,9 @@ class Preview extends Component {
         if (val.type === "Too Deep") {
             return <span>Too deep, no data</span>
         }
+        if (val.type === "Regular Expression") {
+            return <span style={{color: "red"}}>{val.value}</span>
+        }
         if (val.type === "string") {
             return <span style={{color: "red"}}>"{val.text}"</span>
         }

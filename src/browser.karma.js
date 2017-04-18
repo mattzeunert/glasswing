@@ -94,6 +94,14 @@ describe("serializeValue", function(){
             }
         },
         {
+            name: "regular Expressions",
+            value: /[a-z]*/g,
+            serialized: {
+                type: "Regular Expression",
+                value: "/[a-z]*/g"
+            }
+        },
+        {
             name: "objects",
             value: {
                 five: 5,

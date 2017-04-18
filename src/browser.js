@@ -1,5 +1,5 @@
 
-debugger
+
 if (!window.__jscb) {
     inittt()
 }
@@ -108,6 +108,11 @@ function inittt() {
                     elementCount: value.length, 
                     elements
                 }
+            } else if (value instanceof RegExp){
+                return {
+                    type: "Regular Expression",
+                    value: value.toString()
+                }                
             } else if (typeof value === "object") {
                 var data = {}
                 var keys = Object.keys(value)

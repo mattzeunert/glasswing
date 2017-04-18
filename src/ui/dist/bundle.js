@@ -27144,6 +27144,13 @@ var Preview = function (_Component3) {
                     'Too deep, no data'
                 );
             }
+            if (val.type === "Regular Expression") {
+                return _react2.default.createElement(
+                    'span',
+                    { style: { color: "red" } },
+                    val.value
+                );
+            }
             if (val.type === "string") {
                 return _react2.default.createElement(
                     'span',
