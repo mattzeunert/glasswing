@@ -24,7 +24,7 @@ describe("serializeValue", function(){
             serialized: {
                 type: "HTMLElement",
                 tagName: "DIV",
-                children: []
+                innerHTML: ""
             }
         },
         {
@@ -39,7 +39,8 @@ describe("serializeValue", function(){
                 type: "jQuery Object",
                 elements: [
                     __jscb.serializeValue(document.createElement("div"))
-                ]
+                ],
+                elementCount: 1
             }
         },
         {
@@ -88,7 +89,8 @@ describe("serializeValue", function(){
             name: "functions",
             value: function(){},
             serialized: {
-                type: "function"
+                type: "function",
+                text: "function (){}"
             }
         },
         {

@@ -1,3 +1,5 @@
+
+debugger
 if (!window.__jscb) {
     inittt()
 }
@@ -24,6 +26,7 @@ function inittt() {
         },
         serializeValue
     }
+    window.__jscb = __jscb
 
     function serializeValue(value, depth){
         // try {
