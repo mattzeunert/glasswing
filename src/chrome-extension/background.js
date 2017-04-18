@@ -33,6 +33,7 @@ chrome.runtime.onMessage.addListener(function(request, sender) {
             if (details.tabId === tabId){
                 if (details.type === "main_frame" ) {
                     if (details.url.indexOf("https://") !== -1) {
+                        console.log("https site, can't load insecure content")
                         canLoadInsecureContent = false;
                     }
                     return

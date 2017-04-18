@@ -111,7 +111,7 @@ app.use(function(req, res){
                 scriptIdCounter++
                 urlToScriptId[req.body.url] = scriptId 
 
-                beautifyJS(response)
+                response = beautifyJS(response)
 
                 var compiled = compiler.compile(response, {
                     scriptId

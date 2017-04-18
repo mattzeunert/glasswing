@@ -4,9 +4,20 @@ if (!window.__jscb) {
 
 function inittt() {
     var recordedValueBuffer = []
+    var numberOfValuesCollectedByScriptIdValueId = {}
     var __jscb = {
         recordValue: function(scriptId, valueId, value, memberExpressionParent){
+            var id = scriptId + "_" + valueId
+            if (!numberOfValuesCollectedByScriptIdValueId[id]) {
+                numberOfValuesCollectedByScriptIdValueId[id] = 0
+            }
+            if (numberOfValuesCollectedByScriptIdValueId[id] > 4) {
+                // enough values already...
+                return value
+            }
+            numberOfValuesCollectedByScriptIdValueId[id] = numberOfValuesCollectedByScriptIdValueId[id] + 1
             
+
             recordedValueBuffer.push({scriptId, valueId, value: __jscb.serializeValue(value)})
             
             return value
