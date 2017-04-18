@@ -175,7 +175,15 @@ app.use(function(req, res){
             todo: security, collected data should not be available to any site
         `
         html += "Browse these JS files: (TODO: coverge numbers)<br>"
-        html += Object.keys(urlToScriptId).map(url => `<a href="/browse?${encodeURIComponent(url)}">${escape(url)}</a>`).join("<br>")
+        html += Object.keys(urlToScriptId).map(url => {
+            var scriptId = urlToScriptId[url]
+            var store = dataStores[scriptId]
+            var values = Object.keys(store.values).length
+            var locations = Object.keys(store.locations).length
+            // rough percentage b/c funcitonlocations are also locations
+            var roughPercentage = Math.round(values / locations * 100 * 10) /10
+            return `<a href="/browse?${encodeURIComponent(url)}">${escape(url)}</a> (${roughPercentage}%)`
+        }).join("<br>")
         res.end(`<html><body>${html}</body></html>`)
         return
     }

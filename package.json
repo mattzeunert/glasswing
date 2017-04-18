@@ -1,8 +1,8 @@
 {
-  "name": "js-code-browser",
+  "name": "glasswing",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
     "jasmine-node": "jasmine-node src --autotest",
     "karma": "karma start"

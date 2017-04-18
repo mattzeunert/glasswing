@@ -15,10 +15,10 @@ function onBrowserActionClicked(tab) {
 chrome.browserAction.onClicked.addListener(onBrowserActionClicked);
 
 chrome.runtime.onMessage.addListener(function(request, sender) {
-    
+    console.log("listening runtime...., got message, request")
     if (!request.isFromJSExtensionMessage) {return}
-    console.log("########################Got message", request)
-            fetch("http://localhost:8000/__jscb/reportValues", {
+        console.log("########################Got message", request)
+        fetch("http://localhost:8000/__jscb/reportValues", {
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
