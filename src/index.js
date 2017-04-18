@@ -4,6 +4,7 @@ var escape = require('escape-html');
 var getType = require("./analysis")
 const MagicString = require( 'magic-string' );
 var fs = require("fs")
+var beautify = require("js-beautify")
 
 var rewriteHtml = require("./rewriteHtml")
 
@@ -16,6 +17,10 @@ var app = connect();
 
 var Compiler = require("./Compiler")
 var compiler = new Compiler()
+
+function beautifyJS(code){
+    return beautify.js_beautify(code, {indent_size: 2})
+}
 
 function DataStore(options){
     this.values = {}
@@ -105,6 +110,9 @@ app.use(function(req, res){
                 var scriptId = scriptIdCounter
                 scriptIdCounter++
                 urlToScriptId[req.body.url] = scriptId 
+
+                beautifyJS(response)
+
                 var compiled = compiler.compile(response, {
                     scriptId
                 })
