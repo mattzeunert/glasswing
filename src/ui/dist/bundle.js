@@ -27020,19 +27020,47 @@ var OverlayContent = function (_Component) {
             var _this2 = this;
 
             setState = function setState(values) {
+                values.exampleIndex = 0;
                 _this2.setState(values);
             };
         }
     }, {
         key: 'render',
         value: function render() {
+            var _this3 = this;
+
             if (this.state.examples) {
                 var examples = this.state.examples.examples;
                 window.openingId++;
+
+                var exampleNav = null;
+                if (examples && examples.length > 1) {
+                    exampleNav = _react2.default.createElement(
+                        'div',
+                        null,
+                        examples.map(function (e, i) {
+                            return _react2.default.createElement(
+                                'button',
+                                {
+                                    onClick: function onClick() {
+                                        return _this3.setState({ exampleIndex: i });
+                                    },
+                                    style: { color: _this3.state.exampleIndex === i ? "red" : "" }
+                                },
+                                i
+                            );
+                        })
+                    );
+                }
                 return _react2.default.createElement(
                     'div',
                     { style: { fontFamily: "monospace", cursor: "default" } },
-                    (examples && examples.length) > 0 ? _react2.default.createElement(ValueExample, { key: window.openingId, example: examples[0], isRoot: true }) : _react2.default.createElement(
+                    (examples && examples.length) > 0 ? _react2.default.createElement(
+                        'div',
+                        null,
+                        exampleNav,
+                        _react2.default.createElement(ValueExample, { key: window.openingId, example: examples[this.state.exampleIndex], isRoot: true })
+                    ) : _react2.default.createElement(
                         'span',
                         null,
                         'No value captured, this code didn\'t run.'
@@ -27056,16 +27084,16 @@ var FunctionPreview = function (_Component2) {
     function FunctionPreview(props) {
         _classCallCheck(this, FunctionPreview);
 
-        var _this3 = _possibleConstructorReturn(this, (FunctionPreview.__proto__ || Object.getPrototypeOf(FunctionPreview)).call(this, props));
+        var _this4 = _possibleConstructorReturn(this, (FunctionPreview.__proto__ || Object.getPrototypeOf(FunctionPreview)).call(this, props));
 
-        _this3.state = {};
-        return _this3;
+        _this4.state = {};
+        return _this4;
     }
 
     _createClass(FunctionPreview, [{
         key: 'componentDidMount',
         value: function componentDidMount() {
-            var _this4 = this;
+            var _this5 = this;
 
             var value = this.props.value;
             if (!value.scriptId) {
@@ -27074,7 +27102,7 @@ var FunctionPreview = function (_Component2) {
                 fetch("/__jscb/fetchFunctionCode/" + value.scriptId + "/" + value.locationId).then(function (t) {
                     return t.json();
                 }).then(function (json) {
-                    return _this4.setState({
+                    return _this5.setState({
                         text: json.text,
                         url: json.url
                     });
@@ -27084,7 +27112,7 @@ var FunctionPreview = function (_Component2) {
     }, {
         key: 'render',
         value: function render() {
-            var _this5 = this;
+            var _this6 = this;
 
             return _react2.default.createElement(
                 'span',
@@ -27095,7 +27123,7 @@ var FunctionPreview = function (_Component2) {
                     _react2.default.createElement(
                         'button',
                         { onClick: function onClick() {
-                                return window.location = _this5.state.url;
+                                return window.location = _this6.state.url;
                             } },
                         'Go to definition'
                     ),
@@ -27223,12 +27251,12 @@ var ValueExample = function (_Component4) {
     function ValueExample(props) {
         _classCallCheck(this, ValueExample);
 
-        var _this7 = _possibleConstructorReturn(this, (ValueExample.__proto__ || Object.getPrototypeOf(ValueExample)).call(this, props));
+        var _this8 = _possibleConstructorReturn(this, (ValueExample.__proto__ || Object.getPrototypeOf(ValueExample)).call(this, props));
 
-        _this7.state = {
+        _this8.state = {
             expandedPaths: []
         };
-        return _this7;
+        return _this8;
     }
 
     _createClass(ValueExample, [{

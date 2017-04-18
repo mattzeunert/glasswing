@@ -75,7 +75,8 @@ class OverlayContent extends Component {
         this.state = {}
     }
     componentWillMount(){
-        setState = (values) =>{
+        setState = (values) => {
+            values.exampleIndex = 0;            
             this.setState(values)
         }
     }
@@ -83,9 +84,25 @@ class OverlayContent extends Component {
         if (this.state.examples) {
             var examples = this.state.examples.examples
             window.openingId++
+
+
+            var exampleNav = null;
+            if (examples && examples.length > 1) {
+                exampleNav = <div>
+                    {examples.map((e, i) => <button
+                        onClick={() => this.setState({exampleIndex: i})}
+                        style={{color: this.state.exampleIndex === i ? "red" :""}}
+                        >
+                        {i}    
+                    </button>)}
+                </div>
+            }
             return <div style={{fontFamily: "monospace", cursor: "default"}}>
                 { (examples && examples.length) > 0 ? 
-                    <ValueExample key={window.openingId} example={examples[0]} isRoot={true}/>
+                    <div>
+                        {exampleNav}
+                        <ValueExample key={window.openingId} example={examples[this.state.exampleIndex]} isRoot={true}/>
+                    </div>
                 : <span>No value captured, this code didn't run.</span> }
             </div>
         }

@@ -279,7 +279,7 @@ function renderInfo(info){
         } else {
             res[key] = {
                 type: null, // types are out of scope for now
-                examples: values.slice(0, 1)
+                examples: values
             }
         }
     })
