@@ -27087,20 +27087,23 @@ var FunctionPreview = function (_Component2) {
             var _this5 = this;
 
             return _react2.default.createElement(
-                'div',
+                'span',
                 null,
-                '(Function) ',
                 this.props.value.scriptId ? _react2.default.createElement(
-                    'button',
-                    { onClick: function onClick() {
-                            return window.location = _this5.state.url;
-                        } },
-                    'Go to definition'
+                    'span',
+                    null,
+                    _react2.default.createElement(
+                        'button',
+                        { onClick: function onClick() {
+                                return window.location = _this5.state.url;
+                            } },
+                        'Go to definition'
+                    ),
+                    _react2.default.createElement('br', null)
                 ) : null,
-                _react2.default.createElement('br', null),
                 _react2.default.createElement(
                     'pre',
-                    null,
+                    { style: { display: "inline" } },
                     this.state.text ? this.state.text.split(/\n/g).slice(0, 10).join("\n") : null
                 )
             );
@@ -27178,7 +27181,14 @@ var Preview = function (_Component3) {
                 );
             }
             if (val.type === "function") {
-                return _react2.default.createElement(FunctionPreview, { value: val });
+                return _react2.default.createElement(
+                    'span',
+                    null,
+                    '(Function)'
+                );
+            }
+            if (val.type === "functionDetail") {
+                return _react2.default.createElement(FunctionPreview, { value: val.fn });
             }
             if (val.type === "jQuery Object") {
                 return _react2.default.createElement(
@@ -27243,7 +27253,7 @@ var ValueExample = function (_Component4) {
                 function each(key, val) {
                     path.push(key);
                     var expand = null;
-                    var canExpand = val.type === "object" || val.keyCount > 0 || val.type === "array" && val.itemCount > 0 || val.type === "jQuery Object" && val.elementCount > 0;
+                    var canExpand = val.type === "object" || val.keyCount > 0 || val.type === "array" && val.itemCount > 0 || val.type === "jQuery Object" && val.elementCount > 0 || val.type === "function";
                     if (canExpand) {
                         expand = _react2.default.createElement(
                             'span',
@@ -27291,6 +27301,7 @@ var ValueExample = function (_Component4) {
                 }
                 if (e && e.type === "object") {
                     if (depth === 0 || isExpanded(path)) {
+                        each("constructor", e.konstructor);
                         Object.keys(e.data).forEach(function (key) {
                             each(key, e.data[key]);
                         });
@@ -27307,6 +27318,14 @@ var ValueExample = function (_Component4) {
                     if (depth === 0 || isExpanded(path)) {
                         e.elements.forEach(function (item, key) {
                             each(key, item);
+                        });
+                    }
+                }
+                if (e && e.type === "function") {
+                    if (depth === 0 || isExpanded(path)) {
+                        each("code", {
+                            type: "functionDetail",
+                            fn: e
                         });
                     }
                 }

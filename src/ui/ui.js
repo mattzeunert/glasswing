@@ -112,10 +112,10 @@ class FunctionPreview extends Component {
         }
     }
     render(){
-        return <div>
-            (Function) {this.props.value.scriptId ? <button onClick={() => window.location = this.state.url}>Go to definition</button> : null}<br/>
-            <pre>{this.state.text ? this.state.text.split(/\n/g).slice(0, 10).join("\n") : null}</pre>
-        </div>
+        return <span>
+            {this.props.value.scriptId ? (<span><button onClick={() => window.location = this.state.url}>Go to definition</button><br/></span>) : null}
+            <pre style={{display: "inline"}}>{this.state.text ? this.state.text.split(/\n/g).slice(0, 10).join("\n") : null}</pre>
+        </span>
     }
 }
 
@@ -149,7 +149,10 @@ class Preview extends Component {
             </span>
         }
         if (val.type === "function") {
-            return <FunctionPreview value={val} />
+            return <span>(Function)</span>
+        }
+        if (val.type === "functionDetail") {
+            return <FunctionPreview value={val.fn} />
         }
         if (val.type === "jQuery Object") {
             return <span>
@@ -195,7 +198,8 @@ class ValueExample extends Component {
                 var expand = null;
                 var canExpand = (val.type === "object" || val.keyCount > 0) ||
                     (val.type === "array" && val.itemCount > 0) || 
-                    (val.type === "jQuery Object" && val.elementCount > 0)
+                    (val.type === "jQuery Object" && val.elementCount > 0) ||
+                    (val.type === "function")
                 if (canExpand) {
                     expand = <span style={{
                             color: "#777",
@@ -225,6 +229,7 @@ class ValueExample extends Component {
             }
             if (e && e.type === "object") {
                 if (depth === 0 || isExpanded(path)) {
+                    each("constructor", e.konstructor)
                     Object.keys(e.data).forEach(function(key){
                         each(key, e.data[key])
                     })
@@ -241,6 +246,14 @@ class ValueExample extends Component {
                 if (depth === 0 || isExpanded(path)) {
                     e.elements.forEach(function(item, key){
                         each(key, item)
+                    })
+                }
+            }
+            if (e && e.type === "function") {
+                if (depth === 0 || isExpanded(path)) {
+                    each("code", {
+                        type: "functionDetail",
+                        fn: e
                     })
                 }
             }

@@ -122,7 +122,8 @@ function inittt() {
                 return {
                     type: "object",
                     keyCount: keys.length,
-                    data
+                    data,
+                    konstructor: serialize(value.constructor)
                 }
             } else if (typeof value === "symbol") {
                 return {

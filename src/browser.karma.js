@@ -109,6 +109,10 @@ describe("serializeValue", function(){
             },
             serialized: {
                 type: "object",
+                konstructor: {
+                    type: "function",
+                    text: "function Object() { [native code] }"
+                },
                 keyCount: 2,
                 data: {
                     five: 5,
