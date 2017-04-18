@@ -16,6 +16,8 @@ function onBrowserActionClicked(tab) {
         text: "ON",
         tabId: tab.id
     });
+
+    chrome.tabs.reload(tab.id)
 }
 chrome.browserAction.onClicked.addListener(onBrowserActionClicked);
 
