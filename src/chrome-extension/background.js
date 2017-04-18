@@ -11,6 +11,11 @@ function onBrowserActionClicked(tab) {
     canLoadInsecureContent = true
     tabId = tab.id
     injected = false
+
+    chrome.browserAction.setBadgeText({
+        text: "ON",
+        tabId: tab.id
+    });
 }
 chrome.browserAction.onClicked.addListener(onBrowserActionClicked);
 
