@@ -54,11 +54,11 @@ app.use( bodyParser.json({limit: "300mb"}) );
 app.use(function(req, res){
     console.log(req.url)
 
-    if (req.url.indexOf("/node_modules/monaco-editor") !== -1) {
+    if (req.url.indexOf("/node_modules/") !== -1) {
         res.end(fs.readFileSync("./" + req.url.replace(/\.\./g, "")).toString())
-        console.log("MM")
         return
     }
+
     if (req.url === "/__jscb/bundle.js") {
         res.end(fs.readFileSync("src/ui/dist/bundle.js").toString())
         return
@@ -93,13 +93,11 @@ app.use(function(req, res){
         return
     }
 
-    // console.log("REQUEST", req.url)
     if (req.url.indexOf("/request") !== -1) {
         var id = req.url.split("/")[2]
         console.log("request started", id)
         
         resById[id] = res
-        // console.log(Object.keys(resById))
         return
     }
     if (req.url.indexOf("/response") !== -1) {
@@ -128,9 +126,6 @@ app.use(function(req, res){
                 response = compiled.code
             }
             
-
-
-
             var id = req.url.split("/")[2]
             console.log("resposne", id)
 
@@ -152,11 +147,6 @@ app.use(function(req, res){
             } else {
                 res.end(response)
             }
-                
-
-            
-            
-            
             
         }, 1000)
         

@@ -1,16 +1,22 @@
-<html><body>
-    <h1>Glasswing</h1>
-    <div id="content">
+<!doctype html>
+<html>
+    <body>
+        <div class="container">
+        <h1>Glasswing</h1>
+        
+        <link rel="stylesheet" href="/node_modules/bootstrap/dist/css/bootstrap.css" />
+        <div id="content">
 
 
-    Browse these JS files: (TODO: coverge numbers)<br>
-    {{fileLinks}}
-    </div>
+        Browse these JS files: <br>
+        {{fileLinks}}
+        </div>
 
-    <script>
-        if (!window.chrome) {
-            document.querySelector("#content").innerHTML= "Please open this page in Chrome."
-        }
-    </script>
-
-</body></html>
+        <script>
+            if (!window.chrome) {
+                document.querySelector("#content").innerHTML= "Please open this page in Chrome."
+            }
+        </script>
+        </div>
+    </body>
+</html>
