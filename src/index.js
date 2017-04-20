@@ -20,7 +20,7 @@ var program = require('commander');
  
 program
   .version('1.0.0')
-  .option('-p, --port [port]', 'Glasswing port')
+  .option('-p, --port [port]', 'Glasswing port - not supported yet', 9500)
   .parse(process.argv);
 
 var port = program.port
@@ -167,7 +167,7 @@ app.use(function(req, res){
             var id = req.url.split("/")[2]
             console.log("resposne", id)
 
-            var pre = fs.readFileSync("src/browser.js").replace("{{port}}", port) + "\n\n"
+            var pre = fs.readFileSync("src/browser.js").toString().replace("{{port}}", port) + "\n\n"
             response = pre + response
 
             if (!req.body.returnProcessedContent) {
