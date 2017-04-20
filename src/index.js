@@ -165,27 +165,8 @@ app.use(function(req, res){
     
 
     if (req.url === "/") {
-        var html = ""
-        html += "<h1>JS Code Browser</h1>"
-        html += "<a href=\"?not-jscb\">Load through proxy </a><br>"
-        html += `Enter web page to proxy: <form onSubmit="return onS(event)"><input type="text" id="url"></input>
-            <button type="submit">Load</button></form>
-            <script>
-                window.onS = function(e){
-                    e.preventDefault()
-                    var url = document.querySelector("#url").value
-                    var a = document.createElement("a")
-                    a.href = url
-                    location.href = "/" + encodeURIComponent(a.protocol + "//" + a.hostname) +
-                     ( a.port ? (encodeURIComponent(":") + a.port) : "" ) +
-                        a.pathname
-                }
-            </script>
-
-            todo: security, collected data should not be available to any site
-        `
-        html += "Browse these JS files: (TODO: coverge numbers)<br>"
-        html += Object.keys(urlToScriptId).map(url => {
+        var html = fs.readFileSync(__dirname + "/ui/home.html").toString()
+        var fileLinks = Object.keys(urlToScriptId).map(url => {
             var scriptId = urlToScriptId[url]
             var store = dataStores[scriptId]
             var values = Object.keys(store.values).length
@@ -194,7 +175,8 @@ app.use(function(req, res){
             var roughPercentage = Math.round(values / locations * 100 * 10) /10
             return `<a href="/browse?${encodeURIComponent(url)}">${escape(url)}</a> (${roughPercentage}%)`
         }).join("<br>")
-        res.end(`<html><body>${html}</body></html>`)
+        
+        res.end(html.replace("{{fileLinks}}", fileLinks))
         return
     }
 
@@ -215,60 +197,7 @@ app.use(function(req, res){
     }
 
 
-    
-    // var forwardTo = null
-    // var urlParts = req.url.split("/")
-    // if (urlParts[1] === "proxy") {
-        
-    //     urlParts.shift()
-    //     urlParts.shift()
-    //     var protocol = urlParts.shift()
-    //     var hostname = urlParts.shift()
-    //     var port = urlParts.shift()
-    //     var pathname = urlParts.join("/")
-    //     forwardTo = protocol + "://" + hostname + ":" + port + "/" + pathname
-    //     currentBaseUrl = protocol + "://" + hostname + ":" + port + "/" + pathname
-    // } else {
-    //     forwardTo = currentBaseUrl + req.url
-    // }
-    
-    // console.log("forwardTo", forwardTo)
-    // request.get(forwardTo, function (error, response, body) {
-    //     if (error){
-    //         console.log("ERROR", error)
-    //     }
-    //     // console.log(arguments)
-    //     if (body.indexOf("doctype") !== -1 || body.indexOf("DOCTYPE") !== -1) {
-    //         var updatedBody = rewriteHtml(body, currentBaseUrl)
-            
-    //         res.end(`<script>
-    //             ${require("fs").readFileSync("./src/browser.js").toString()}
-    //         </script>` + updatedBody
-    //         )
-    //     } else if (endsWith(req.url, ".js")) {
-    //         var scriptId = scriptIdCounter
-    //         scriptIdCounter++
-    //         urlToScriptId[req.url] = scriptId 
-    //         var compiled = compiler.compile(body, {
-    //             scriptId
-    //         })
 
-    //         dataStores[scriptId] = new DataStore({
-    //             code: body,
-    //             locations: compiled.locations
-    //         })
-    //         res.end(compiled.code)
-    //     } else if (endsWith(req.url, ".js?browse")) {
-    //         var info = getDataStore(urlToScriptId[req.url.replace("?browse", "")])
-    //         if (!info){
-    //             res.end("No data for this file has been collected. Load a web page that loads this file")
-    //         } else {
-    //             res.end(renderInfo(info))
-    //         }
-    //     } else {
-    //         res.end(body)
-    //     }
-    // });
     
 });
 
