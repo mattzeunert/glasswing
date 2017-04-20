@@ -7,14 +7,23 @@ var fs = require("fs")
 var beautify = require("js-beautify")
 var _ = require("lodash")
 
+// not used anymore, using chrome extension to intercept request
 var rewriteHtml = require("./rewriteHtml")
-const opn = require('opn');
 
 
 var connect = require('connect');
 var http = require('http');
 var bodyParser = require('body-parser')
 var url = require("url")
+
+var program = require('commander');
+ 
+program
+  .version('1.0.0')
+  .option('-p, --port [port]', 'Glasswing port')
+  .parse(process.argv);
+
+var port = program.port
 
 var app = connect();
 
@@ -158,7 +167,7 @@ app.use(function(req, res){
             var id = req.url.split("/")[2]
             console.log("resposne", id)
 
-            var pre = fs.readFileSync("src/browser.js") + "\n\n"
+            var pre = fs.readFileSync("src/browser.js").replace("{{port}}", port) + "\n\n"
             response = pre + response
 
             if (!req.body.returnProcessedContent) {
@@ -365,5 +374,5 @@ function renderInfoOldUnused(info){
 
 
 //create node.js http server and listen on port
-http.createServer(app).listen(9500);
-// opn('http://localhost:9500');
+http.createServer(app).listen(port);
+console.log("Listening on http://localhost:" + port)

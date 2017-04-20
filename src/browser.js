@@ -177,7 +177,7 @@ function inittt() {
         
 
         if (location.protocol === "http:") {
-            fetch("http://localhost:9500/__jscb/reportValues", {
+            fetch("http://localhost:{{port}}/__jscb/reportValues", {
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
