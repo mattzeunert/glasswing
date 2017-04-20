@@ -5,6 +5,7 @@ var getType = require("./analysis")
 const MagicString = require( 'magic-string' );
 var fs = require("fs")
 var beautify = require("js-beautify")
+var _ = require("lodash")
 
 var rewriteHtml = require("./rewriteHtml")
 const opn = require('opn');
@@ -36,19 +37,47 @@ DataStore.prototype.reportValue = function(data){
     }
     this.values[data.valueId].push(data.value)
 }
+DataStore.prototype.serialize = function(){
+    return {
+        values: this.values,
+        url: this.url,
+        locations: this.locations,
+        code: this.code
+    }
+}
+DataStore.deserialize =  function(data){
+    var store = new DataStore(data)
+    store.values = data.values
+    return store
+}
 
 var urlToScriptId = {}
 
-const dataStores = {}
+var dataStores = {}
 function getDataStore(scriptId){
     return dataStores[scriptId]
 }
 
 var scriptIdCounter = 1
 
-var currentBaseUrl = null
-
 const resById = {}
+
+var saveTo = "/tmp/data.json"
+
+if (saveTo) {
+    try {
+        var data = JSON.parse(fs.readFileSync(saveTo).toString())
+    } catch (err) {}
+    
+    if (data) {
+        scriptIdCounter = data.scriptIdCounter
+        urlToScriptId = data.urlToScriptId
+        dataStores = _.mapValues(data.stores, s => {
+            return DataStore.deserialize(s)
+        })
+        console.log(dataStores)
+    }
+}
 
 app.use( bodyParser.json({limit: "300mb"}) );
 app.use(function(req, res){
@@ -183,6 +212,15 @@ app.use(function(req, res){
             var dataStore = getDataStore(data.scriptId)
             dataStore.reportValue(data)
         })
+
+        var data = {
+            stores: _.mapValues(dataStores, s => s.serialize()),
+            scriptIdCounter: scriptIdCounter,
+            urlToScriptId: urlToScriptId
+        }
+
+        fs.writeFileSync(saveTo, JSON.stringify(data, null, 4))
+        
         res.end('{"status": "success"}')
     }
 
@@ -312,4 +350,4 @@ function renderInfoOldUnused(info){
 
 //create node.js http server and listen on port
 http.createServer(app).listen(9500);
-opn('http://localhost:9500');
+// opn('http://localhost:9500');

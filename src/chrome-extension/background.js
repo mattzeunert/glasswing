@@ -25,7 +25,7 @@ chrome.runtime.onMessage.addListener(function(request, sender) {
     console.log("listening runtime...., got message, request")
     if (!request.isFromJSExtensionMessage) {return}
         console.log("########################Got message", request)
-        fetch("http://localhost:8000/__jscb/reportValues", {
+        fetch("http://localhost:9500/__jscb/reportValues", {
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
@@ -62,7 +62,7 @@ chrome.runtime.onMessage.addListener(function(request, sender) {
                     injected = true
                 }
                 console.log("request for", details.url)
-                if (details.url.indexOf("http://localhost:8000/request/") !== -1
+                if (details.url.indexOf("http://localhost:9500/request/") !== -1
                     || details.url.indexOf("__jscb") !== -1){
                         console.log("Not intercepting", details.url)
                     return
@@ -75,7 +75,7 @@ chrome.runtime.onMessage.addListener(function(request, sender) {
                 var requestId = Math.floor(Math.random() * 100000000000)
                 var ret
                 if (canLoadInsecureContent) {
-                    ret = {redirectUrl: "http://localhost:8000/request/" + requestId}
+                    ret = {redirectUrl: "http://localhost:9500/request/" + requestId}
                 }
                 else {
                     
@@ -89,7 +89,7 @@ chrome.runtime.onMessage.addListener(function(request, sender) {
                     var oReq = new XMLHttpRequest();
                     oReq.addEventListener("load", function(){
                         console.log("loaded response for", requestId)
-                        fetch("http://localhost:8000/response/" + requestId, {
+                        fetch("http://localhost:9500/response/" + requestId, {
                             headers: {
                                 'Accept': 'application/json',
                                 'Content-Type': 'application/json'
