@@ -7,6 +7,8 @@ var fs = require("fs")
 var beautify = require("js-beautify")
 
 var rewriteHtml = require("./rewriteHtml")
+const opn = require('opn');
+
 
 var connect = require('connect');
 var http = require('http');
@@ -391,3 +393,4 @@ function renderInfoOldUnused(info){
 
 //create node.js http server and listen on port
 http.createServer(app).listen(9500);
+opn('http://localhost:9500');

@@ -30,6 +30,7 @@
     "ends-with": "^0.2.0",
     "escape-html": "^1.0.3",
     "monaco-editor": "^0.8.3",
+    "opn": "^4.0.2",
     "react": "^15.5.4",
     "react-dom": "^15.5.4",
     "request": "^2.81.0",
