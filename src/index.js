@@ -238,7 +238,10 @@ app.use(function(req, res){
             urlToScriptId: urlToScriptId
         }
 
-        fs.writeFileSync(saveTo, JSON.stringify(data, null, 4))
+        var stringifiedData = JSON.stringify(data, null, 4)
+        var mb = Math.round(stringifiedData.length / 1024 / 1024)
+        console.log("Saving data to " + saveTo + ": " + mb + "MB")
+        fs.writeFileSync(saveTo, stringifiedData)
         
         res.end('{"status": "success"}')
     }
