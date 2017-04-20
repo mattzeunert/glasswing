@@ -1,0 +1,46 @@
+<html>
+        <head>
+            <title>{{fileName}} - Glasswing</title>
+        </head>
+        <body>
+    <meta charset="utf-8" />    
+        <div id="code-container" style="height: 100%">
+            <style>
+                body {
+                    margin: 0;
+                }
+                .value {
+                    border-bottom: 1px solid red;
+                    cursor: pointer;
+                }
+                .value--no-data {
+                    border-bottom: 1px solid gray;
+                }
+                .monaco-editor-hover {
+                    display: none; /* hide monaco type annotations */
+                }
+            </style>
+        </div>
+        <div id="overlay"></div>
+        <br><br><br>
+        
+
+         
+
+        <script>
+            
+            {{valueEmbeds}}
+
+            
+        </script>
+        <script src="/__jscb/bundle.js"></script>
+
+           <script src="../node_modules/monaco-editor/min/vs/loader.js"></script>
+    <script>
+        require.config({ paths: { 'vs': '/node_modules/monaco-editor/min/vs' }});
+        require(['vs/editor/editor.main'], function() {
+            start()
+            
+        });
+    </script>
+</body></html>

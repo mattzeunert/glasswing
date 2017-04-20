@@ -84,14 +84,11 @@ if (saveTo) {
         dataStores = _.mapValues(data.stores, s => {
             return DataStore.deserialize(s)
         })
-        console.log(dataStores)
     }
 }
 
 app.use( bodyParser.json({limit: "300mb"}) );
 app.use(function(req, res){
-    console.log(req.url)
-
     if (req.url.indexOf("/node_modules/") !== -1) {
         res.end(fs.readFileSync("./" + req.url.replace(/\.\./g, "")).toString())
         return
@@ -107,7 +104,6 @@ app.use(function(req, res){
 
         var info = getDataStore(urlToScriptId[url])
         if (!info){
-            console.log(Object.keys(urlToScriptId))
             res.end("No data for this file has been collected. Load a web page that loads this file")
         } else {
             res.end(renderInfo(info))
@@ -117,10 +113,8 @@ app.use(function(req, res){
 
     if (req.url.indexOf("/__jscb/fetchFunctionCode") !== -1) {
         var parts = req.url.split("/")
-        console.log(parts)
         var locationId = parseFloat(parts.pop())
         var scriptId = parseFloat(parts.pop())
-        console.log("scriptId", scriptId, "locId", locationId)
         var store = dataStores[scriptId]
         var loc = store.locations[locationId]
         var json = {
@@ -209,7 +203,7 @@ app.use(function(req, res){
                         <a href="/browse?${encodeURIComponent(url)}">${escape(url)}</a>
                     </td>
                     <td>
-                        (${roughPercentage}%)
+                        ~${roughPercentage}%
                     </td>
                 `
             }).join("")
@@ -268,50 +262,17 @@ function renderInfo(info){
         }
     })
 
-     return `<html><body>
-    <meta charset="utf-8" />    
-        <div id="code-container" style="height: 100%">
-            <style>
-                body {
-                    margin: 0;
-                }
-                .value {
-                    border-bottom: 1px solid red;
-                    cursor: pointer;
-                }
-                .value--no-data {
-                    border-bottom: 1px solid gray;
-                }
-                .monaco-editor-hover {
-                    display: none; // hide monaco type annotations
-                }
-            </style>
-        </div>
-        <div id="overlay"></div>
-        <br><br><br>
-        
+    fileName = _.last(info.url.split("/"))
+    
+    var valueEmbeds = `
+        window.values = JSON.parse(decodeURI("${encodeURI(JSON.stringify(res))}"));
+        window.code = decodeURI("${encodeURI(info.code)}");
+        window.locations = JSON.parse(decodeURI("${encodeURI(JSON.stringify(info.locations))}"));
+    `
 
-         
-
-        <script>
-            
-            window.values = JSON.parse(decodeURI("${encodeURI(JSON.stringify(res))}"));
-            window.code = decodeURI("${encodeURI(info.code)}");
-            window.locations = JSON.parse(decodeURI("${encodeURI(JSON.stringify(info.locations))}"));
-
-            ${require("fs").readFileSync("src/ui/lodash.js").toString()}
-        </script>
-        <script src="/__jscb/bundle.js"></script>
-
-           <script src="../node_modules/monaco-editor/min/vs/loader.js"></script>
-<script>
-	require.config({ paths: { 'vs': '/node_modules/monaco-editor/min/vs' }});
-	require(['vs/editor/editor.main'], function() {
-        start()
-		
-	});
-</script>
-        </body></body>`
+    return fs.readFileSync(__dirname + "/ui/file.html").toString()
+        .replace("{{valueEmbeds}}", valueEmbeds)
+        .replace("{{fileName}}", fileName)
 }
 
 
