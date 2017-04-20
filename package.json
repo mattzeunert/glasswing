@@ -7,6 +7,9 @@
     "jasmine-node": "jasmine-node src --autotest",
     "karma": "karma start"
   },
+  "bin": {
+    "glasswing": "bin/glasswing.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mattzeunert/js-code-browser.git"
