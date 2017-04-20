@@ -5,7 +5,8 @@ import _ from "lodash"
 window.start = function(){
     window.editor = monaco.editor.create(document.getElementById("code-container"), {
         value: window.code,
-        language: "javascript"
+        language: "javascript",
+        readOnly: true
     });
 
     var decorations = Object.keys(locations).map(function(key){
@@ -289,6 +290,7 @@ class ValueExample extends Component {
 
 
 var overlay = document.getElementById("overlay")
+overlay.style.display = "none"
 var overlayComp = <OverlayContent />
 window.overlayComop = overlayComp
 render(overlayComp, overlay)

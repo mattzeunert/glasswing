@@ -21,6 +21,7 @@ var program = require('commander');
 program
   .version('1.0.0')
   .option('-p, --port [port]', 'Glasswing port - not supported yet', 9500)
+  .option('-p, --save [path]', 'Directory to save data in')
   .parse(process.argv);
 
 var port = program.port
@@ -71,7 +72,7 @@ var scriptIdCounter = 1
 
 const resById = {}
 
-var saveTo = "/tmp/data.json"
+var saveTo = program.save + "/data.json"
 
 if (saveTo) {
     try {
@@ -145,9 +146,13 @@ app.use(function(req, res){
 
                 response = beautifyJS(response)
 
+                var started = new Date()
                 var compiled = compiler.compile(response, {
                     scriptId
                 })
+                var ended = new Date()
+                var ms = ended.valueOf() - started.valueOf()
+                console.log("Compiling " + req.body.url + " took "  + ms + "ms")
 
                 dataStores[scriptId] = new DataStore({
                     code: response,
@@ -180,7 +185,7 @@ app.use(function(req, res){
                 res.end(response)
             }
             
-        }, 1000)
+        }, 100)
         
         return
     }
@@ -226,29 +231,27 @@ app.use(function(req, res){
             return
         }
         console.log("Received " + req.body.length + " values")
-        // console.log(req.body)
         req.body.forEach(function(data){
             var dataStore = getDataStore(data.scriptId)
             dataStore.reportValue(data)
         })
 
-        var data = {
-            stores: _.mapValues(dataStores, s => s.serialize()),
-            scriptIdCounter: scriptIdCounter,
-            urlToScriptId: urlToScriptId
-        }
+        if (saveTo) {
+            var data = {
+                stores: _.mapValues(dataStores, s => s.serialize()),
+                scriptIdCounter: scriptIdCounter,
+                urlToScriptId: urlToScriptId
+            }
 
-        var stringifiedData = JSON.stringify(data, null, 4)
-        var mb = Math.round(stringifiedData.length / 1024 / 1024)
-        console.log("Saving data to " + saveTo + ": " + mb + "MB")
-        fs.writeFileSync(saveTo, stringifiedData)
+            var stringifiedData = JSON.stringify(data, null, 4)
+            var mb = Math.round(stringifiedData.length / 1024 / 1024)
+            console.log("Saving data to " + saveTo + ": " + mb + "MB")
+            fs.writeFileSync(saveTo, stringifiedData)
+        }
+        
         
         res.end('{"status": "success"}')
     }
-
-
-
-    
 });
 
 function renderInfo(info){
@@ -331,9 +334,6 @@ function renderInfoOldUnused(info){
         </script>
         </body></body>`
 }
-
-// var cc = require("fs").readFileSync("./test.js").toString()
-// console.log(module.exports.process("test.js", cc))
 
 
 

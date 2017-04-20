@@ -26938,7 +26938,8 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 window.start = function () {
     window.editor = monaco.editor.create(document.getElementById("code-container"), {
         value: window.code,
-        language: "javascript"
+        language: "javascript",
+        readOnly: true
     });
 
     var decorations = Object.keys(locations).map(function (key) {
@@ -27375,6 +27376,7 @@ var ValueExample = function (_Component4) {
 }(_react.Component);
 
 var overlay = document.getElementById("overlay");
+overlay.style.display = "none";
 var overlayComp = _react2.default.createElement(OverlayContent, null);
 window.overlayComop = overlayComp;
 (0, _reactDom.render)(overlayComp, overlay);
