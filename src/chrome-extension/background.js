@@ -24,10 +24,10 @@ chrome.browserAction.onClicked.addListener(onBrowserActionClicked);
 var port = 9500
 
 chrome.runtime.onMessage.addListener(function(request, sender) {
-    console.log("listening runtime...., got message, request")
     if (!request.isFromJSExtensionMessage) {return}
+    console.log("########################Got message", request)
     if (request.cake) {
-        console.log("########################Got message", request)
+        
         fetch("http://localhost:"  + port +"/__jscb/reportValues", {
             headers: {
                 'Accept': 'application/json',
@@ -101,6 +101,7 @@ chrome.runtime.onMessage.addListener(function(request, sender) {
                             },
                             body: JSON.stringify({
                                 response: oReq.responseText,
+                                requestType: details.type, 
                                 url: details.url,
                                 returnProcessedContent: !canLoadInsecureContent
                             }),

@@ -135,8 +135,8 @@ function inittt() {
                 return "Unhandled"
             }
         } catch (err) {
-            console.error(err)
-            return "ERROR WHILE SERIALIZING"
+            console.warn("Error while serializing value", err)
+            return { type: "ERROR WHILE SERIALIZING" }
         }
     }
 
@@ -186,6 +186,7 @@ function inittt() {
                 method: "post"
             })
         } else {
+            console.log("using RebroadcastExtensionMessage to send values")
             var event = new CustomEvent("RebroadcastExtensionMessage", {
                 detail: {
                     "cake": body ,
