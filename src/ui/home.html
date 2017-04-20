@@ -5,10 +5,23 @@
         <h1>Glasswing</h1>
         
         <link rel="stylesheet" href="/node_modules/bootstrap/dist/css/bootstrap.css" />
+        <style>
+            .file-links {
+                width: 100%;
+                line-height: 24px;
+            }
+            .file-links td {
+                border: 1px solid #ccc;
+                padding: 2px;
+            }
+            .file-links tr:nth-child(even) td {
+                background: #f7f7f7;
+            }
+        </style>
         <div id="content">
 
 
-        Browse these JS files: <br>
+        <h3 style="font-weight: normal">Browse these JS files: </h3>
         {{fileLinks}}
         </div>
 

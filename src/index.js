@@ -185,15 +185,31 @@ app.use(function(req, res){
 
     if (req.url === "/") {
         var html = fs.readFileSync(__dirname + "/ui/home.html").toString()
-        var fileLinks = Object.keys(urlToScriptId).map(url => {
-            var scriptId = urlToScriptId[url]
-            var store = dataStores[scriptId]
-            var values = Object.keys(store.values).length
-            var locations = Object.keys(store.locations).length
-            // rough percentage b/c funcitonlocations are also locations
-            var roughPercentage = Math.round(values / locations * 100 * 10) /10
-            return `<a href="/browse?${encodeURIComponent(url)}">${escape(url)}</a> (${roughPercentage}%)`
-        }).join("<br>")
+        var scriptDataCollected = Object.keys(urlToScriptId).length  > 0
+        var fileLinks
+        if(scriptDataCollected) {
+            fileLinks = Object.keys(urlToScriptId).map(url => {
+                var scriptId = urlToScriptId[url]
+                var store = dataStores[scriptId]
+                var values = Object.keys(store.values).length
+                var locations = Object.keys(store.locations).length
+                // rough percentage b/c funcitonlocations are also locations
+                var roughPercentage = Math.round(values / locations * 100 * 10) /10
+                return `<tr>
+                    <td>
+                        <a href="/browse?${encodeURIComponent(url)}">${escape(url)}</a>
+                    </td>
+                    <td>
+                        (${roughPercentage}%)
+                    </td>
+                `
+            }).join("")
+            fileLinks = "<table class=\"file-links\">"  +
+                `<thead><th>File</th><th>Locations with values</th></thead>`
+                + fileLinks + "</table>"
+        } else {
+            fileLinks = "<div>No data collected. Load a website and then click the Glassdoor Chrome extension button in the top right of your browser.</div>"
+        }
         
         res.end(html.replace("{{fileLinks}}", fileLinks))
         return
