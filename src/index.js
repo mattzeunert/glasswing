@@ -4,6 +4,8 @@ var escape = require('escape-html');
 var getType = require("./analysis")
 var fs = require("fs")
 var _ = require("lodash")
+const path = require('path');
+
 
 // not used anymore, using chrome extension to intercept request
 var rewriteHtml = require("./rewriteHtml")
@@ -129,7 +131,9 @@ if (saveTo) {
 app.use( bodyParser.json({limit: "300mb"}) );
 app.use(function(req, res){
     if (req.url.indexOf("/node_modules/") !== -1) {
-        res.end(fs.readFileSync("./" + req.url.replace(/\.\./g, "")).toString())
+        var filePath = path.join(__dirname + "/../", req.url.replace(/\.\./g, ""))
+        var fileContent = fs.readFileSync(path.join(__dirname + "/../", req.url.replace(/\.\./g, "")))
+        res.end(fileContent).toString()
         return
     }
 
