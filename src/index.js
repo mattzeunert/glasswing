@@ -2,9 +2,7 @@ var request = require('request');
 var endsWith = require("ends-with")
 var escape = require('escape-html');
 var getType = require("./analysis")
-const MagicString = require( 'magic-string' );
 var fs = require("fs")
-var beautify = require("js-beautify")
 var _ = require("lodash")
 
 // not used anymore, using chrome extension to intercept request

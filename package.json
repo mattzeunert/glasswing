@@ -39,7 +39,9 @@
     "webpack": "^2.3.3"
   },
   "devDependencies": {
+    "babel-core": "^6.24.1",
     "babel-loader": "^6.4.1",
+    "babel-types": "^6.24.1",
     "jasmine-core": "^2.5.2",
     "jasmine-node": "^1.14.5",
     "karma": "^1.6.0",
