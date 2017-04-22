@@ -112,7 +112,10 @@ var scriptIdCounter = 1
 
 const resById = {}
 
-var saveTo = program.save + "/data.json"
+var saveTo = null
+if (program.save) {
+    saveTo = program.save + "/data.json"
+}
 
 if (saveTo) {
     try {
