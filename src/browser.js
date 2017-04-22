@@ -92,7 +92,7 @@ function inittt() {
                     // children: Array.prototype.map.call(value.children, c => serialize(c))
                 }
             }
-            else if (value && value.length && value.map === Array.prototype.map) {
+            else if (value && value.length !== undefined && value.map === Array.prototype.map) {
                 return {
                     type: "array",
                     itemCount: value.length,
