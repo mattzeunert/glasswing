@@ -128,17 +128,21 @@ if (saveTo) {
     }
 }
 
+function pathFromRoot(p){
+    return path.join(__dirname + "/../", p)
+}
+
 app.use( bodyParser.json({limit: "300mb"}) );
 app.use(function(req, res){
     if (req.url.indexOf("/node_modules/") !== -1) {
-        var filePath = path.join(__dirname + "/../", req.url.replace(/\.\./g, ""))
+        var filePath = pathFromRoot(req.url.replace(/\.\./g, ""))
         var fileContent = fs.readFileSync(path.join(__dirname + "/../", req.url.replace(/\.\./g, "")))
         res.end(fileContent).toString()
         return
     }
 
     if (req.url === "/__jscb/bundle.js") {
-        res.end(fs.readFileSync("src/ui/dist/bundle.js").toString())
+        res.end(fs.readFileSync(pathFromRoot("src/ui/dist/bundle.js")).toString())
         return
     }
 
@@ -208,7 +212,7 @@ app.use(function(req, res){
             var id = req.url.split("/")[2]
             console.log("resposne", id)
 
-            var pre = fs.readFileSync("src/browser.js").toString().replace("{{port}}", port) + "\n\n"
+            var pre = fs.readFileSync(pathFromRoot("src/browser.js")).toString().replace("{{port}}", port) + "\n\n"
             response = pre + response
 
             if (!req.body.returnProcessedContent) {
@@ -371,8 +375,8 @@ function renderInfoOldUnused(info){
         <div>ERRORS: <br>${errors.join("<br>")}</div>
         <script>
             window.values = JSON.parse(decodeURI("${encodeURI(JSON.stringify(res))}"));
-            ${require("fs").readFileSync("src/ui/lodash.js").toString()}
-            ${require("fs").readFileSync("src/ui/dist/bundle.js").toString()}            
+            ${require("fs").readFileSync(pathFromRoot("src/ui/lodash.js")).toString()}
+            ${require("fs").readFileSync(pathFromRoot("src/ui/dist/bundle.js")).toString()}            
         </script>
         </body></body>`
 }
