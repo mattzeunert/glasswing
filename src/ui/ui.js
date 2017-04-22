@@ -158,7 +158,7 @@ class Preview extends Component {
         if (val.type === "object") {
             return <span>
                 (Object)
-                {val.keyCount === 0 ? " {}" : ""}
+                {" {" + Object.keys(val.data).join(", ") +"}" }
             </span>
         }
         if (val.type === "array"){

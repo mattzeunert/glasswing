@@ -27197,7 +27197,7 @@ var Preview = function (_Component3) {
                     'span',
                     null,
                     '(Object)',
-                    val.keyCount === 0 ? " {}" : ""
+                    " {" + Object.keys(val.data).join(", ") + "}"
                 );
             }
             if (val.type === "array") {
