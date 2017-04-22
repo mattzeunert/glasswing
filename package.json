@@ -12,14 +12,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mattzeunert/js-code-browser.git"
+    "url": "git+https://github.com/mattzeunert/glasswing.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/mattzeunert/js-code-browser/issues"
+    "url": "https://github.com/mattzeunert/glasswing/issues"
   },
-  "homepage": "https://github.com/mattzeunert/js-code-browser#readme",
+  "homepage": "https://github.com/mattzeunert/glasswing/blob/master/README.md",
   "dependencies": {
     "babel-loader": "^6.4.1",
     "babel-preset-es2015": "^6.24.1",
