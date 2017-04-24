@@ -54,10 +54,11 @@ function inittt() {
                     type: "null"
                 }   
             } else if (typeof value === "string") {
+                var maxChar = depth < 2 ? 1000 : 100
                 return {
                     type: "string",
                     length: value.length,
-                    text: value.slice(0, 100)
+                    text: value.slice(0, maxChar)
                 }
             }
             else if (typeof value === "number") {

@@ -71,7 +71,7 @@ describe("serializeValue", function(){
             value: new Array(10000).join("A"),
             serialized: {
                 type: "string",
-                text: new Array(101).join("A"),
+                text: new Array(1001).join("A"),
                 length: 9999
             }
         },
