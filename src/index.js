@@ -251,18 +251,27 @@ app.use(function(req, res){
         var fileLinks
         if(scriptDataCollected) {
             fileLinks = Object.keys(urlToScriptId).map(url => {
+                console.log(urlToScriptId)
+                console.log("Url", url)
                 var scriptId = urlToScriptId[url]
                 var store = dataStores[scriptId]
-                var values = Object.keys(store.values).length
-                var locations = Object.keys(store.locations).length
-                // rough percentage b/c funcitonlocations are also locations
-                var roughPercentage = Math.round(values / locations * 100 * 10) /10
+                var content = ""
+                if (store === undefined) {
+                    content = "No value store found"
+                } else {
+                    var values = Object.keys(store.values).length
+                    var locations = Object.keys(store.locations).length
+                    // rough percentage b/c funcitonlocations are also locations
+                    var roughPercentage = Math.round(values / locations * 100 * 10) /10
+                    content = `~${roughPercentage}%`
+                }
+                
                 return `<tr>
                     <td>
                         <a href="/browse?${encodeURIComponent(url)}">${escape(url)}</a>
                     </td>
                     <td>
-                        ~${roughPercentage}%
+                        {content}
                     </td>
                 `
             }).join("")
