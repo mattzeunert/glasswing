@@ -38,7 +38,7 @@ window.start = function(){
             range: new monaco.Range(start.line, start.column, end.line, end.column),
             options: {
                 isWholeLine: false,
-                inlineClassName: "value value-" + key + " " + ((values[key] && values[key].examples && values[key].examples.length) ? "" : "value--no-data")
+                inlineClassName: "value value-" + key // + " " + ((values[key] && values[key].examples && values[key].examples.length) ? "" : "value--no-data")
             }
         }
 
@@ -73,12 +73,20 @@ window.openingId = 1;
 class OverlayContent extends Component {
     constructor(props){
         super(props)
-        this.state = {}
+        this.state = {
+            valueId: -1
+        }
     }
     componentWillMount(){
-        setState = (values) => {
-            values.exampleIndex = 0;            
-            this.setState(values)
+        setState = (valueId) => {
+            this.setState({
+                exampleIndex: 0,
+                valueId: valueId,
+                examples: {examples: []}
+            })
+            fetch("/__jscb/getValues/" + scriptId + "/" + valueId)
+            .then(r=>r.json())
+            .then(data => this.setState({examples: {examples: data}}))
         }
     }
     render(){
@@ -318,10 +326,7 @@ document.body.addEventListener("mouseover", function(e){
     }
     
     var valId = el.className.split(" ").filter(c => c.indexOf("value-") !== -1)[0].replace(/[^0-9]/g,"")
-    var vals = window.values[valId]
-    if (!vals) {
-        vals = []
-    }
+    
     var overlay = document.getElementById("overlay")
     overlay.style.display = "block"
     overlay.setAttribute("style",
@@ -329,48 +334,51 @@ document.body.addEventListener("mouseover", function(e){
         "px; left: " + (el.getBoundingClientRect().left + 20) + "px"
         + ";position: absolute; background: white; padding: 4px; border: 1px solid #ddd;"
     )
-    if (vals) {
-        setState({examples: vals})
 
-        function esc(str){
-            if(str===undefined) debugger
-            return str.replace(/</g, "&lt;").replace(/>/g, "&gt;")
-        }
-        // overlay.innerHTML = "<pre>" + esc(JSON.stringify(vals.examples, null, 4))  + "</pre>"
+    setState(valId)
 
-        function renderTypes(type, depth){
-            if (!type) {
-                return "no info..."
-            }
-            if (!type){debugger}
-            if (depth === undefined) {
-                depth =0 
-            }
-            console.log("render", type)
-            if (type.length > 1) {
-                return "(" + type.map(t => renderTypes([t])).join(" | ") + ")"
-            }   if (type.length === 0) {
-                return "(No type)"
-            }
-            else {
-                var t = type[0]
-                if (typeof t === "object") {
-                    var ret = "{\n"
-                    ret += Object.keys(t).map(function(key){
-                        return new Array(depth + 2).join("  ") + esc(key) + (t[key].optional ? "?" : "") + ":" + renderTypes(t[key].type, depth + 1)
-                    }).join(",\n")
-                    ret += "\n" + new Array(depth + 1).join("  ") + "}"
-                    return ret
-                } else {
-                    return esc(JSON.stringify(t, null, 4))
-                }
+    // if (vals) {
+    //     setState({examples: vals})
+
+    //     function esc(str){
+    //         if(str===undefined) debugger
+    //         return str.replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    //     }
+    //     // overlay.innerHTML = "<pre>" + esc(JSON.stringify(vals.examples, null, 4))  + "</pre>"
+
+    //     function renderTypes(type, depth){
+    //         if (!type) {
+    //             return "no info..."
+    //         }
+    //         if (!type){debugger}
+    //         if (depth === undefined) {
+    //             depth =0 
+    //         }
+    //         console.log("render", type)
+    //         if (type.length > 1) {
+    //             return "(" + type.map(t => renderTypes([t])).join(" | ") + ")"
+    //         }   if (type.length === 0) {
+    //             return "(No type)"
+    //         }
+    //         else {
+    //             var t = type[0]
+    //             if (typeof t === "object") {
+    //                 var ret = "{\n"
+    //                 ret += Object.keys(t).map(function(key){
+    //                     return new Array(depth + 2).join("  ") + esc(key) + (t[key].optional ? "?" : "") + ":" + renderTypes(t[key].type, depth + 1)
+    //                 }).join(",\n")
+    //                 ret += "\n" + new Array(depth + 1).join("  ") + "}"
+    //                 return ret
+    //             } else {
+    //                 return esc(JSON.stringify(t, null, 4))
+    //             }
                 
-            }
+    //         }
             
-        }
-    } else {
-        overlay.innerText = "No values captured. This code didn't run."
-    }
+    //     }
+    // } else {
+    //     overlay.innerText = "No values captured. This code didn't run."
+    // }
     
 })
 

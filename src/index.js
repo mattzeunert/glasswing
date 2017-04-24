@@ -33,6 +33,29 @@ var app = connect();
 var Compiler = require("./Compiler")
 var compiler = new Compiler()
 
+var level = require('level')
+
+function KeyValueStore(storeIn){
+    console.log("creating lvel db", storeIn)
+    this.db = level(storeIn)
+}
+KeyValueStore.prototype.put = function(key, value, callback){
+    this.db.put(key, value, function (err) {
+        if (err) {
+            console.log("PUt err", err)
+        }
+        callback()
+    })
+}
+KeyValueStore.prototype.get = function(key, callback){
+    this.db.get(key, function (err, value) {
+        if (err) {
+            console.log("PUt err", err)
+        }
+        callback(value)
+    })
+}
+
 function beautifyJS(code){
     const prettier = require("prettier");
     const options= {
@@ -80,17 +103,32 @@ function beautifyJS(code){
     }
 }
 
+var async = require("async")
+
 function DataStore(options){
-    this.values = {}
+    console.log("new datastore with", options.url)
+    // random b/c sometiems we have multipel stroes with same id.. shoudl really be same store
+    this.values = new KeyValueStore(saveToDir + "/" + encodeURIComponent(options.url).slice(-100) + Math.floor(Math.random() * 10000)) 
+
     this.url = options.url
     this.locations = options.locations
     this.code = options.code
 }
-DataStore.prototype.reportValue = function(data){
-    if (!this.values[data.valueId]){
-        this.values[data.valueId] = []
-    }
-    this.values[data.valueId].push(data.value)
+DataStore.prototype.reportValue = function(data, callback){
+    this.getValues(data.valueId, (values) => {
+        values.push(data.value)
+        this.values.put(data.valueId.toString(), JSON.stringify(values), callback)
+    })
+}
+DataStore.prototype.getValues = function(valueId, callback){
+    this.values.get(valueId, (values) => {
+        if (values) {
+            values = JSON.parse(values)
+        } else {
+            values = []
+        }
+        callback(values)
+    })
 }
 DataStore.prototype.serialize = function(){
     return {
@@ -116,6 +154,9 @@ function getDataStore(scriptId){
 var scriptIdCounter = 1
 
 const resById = {}
+
+
+var saveToDir = "./data"
 
 var saveTo = null
 if (program.save) {
@@ -156,14 +197,53 @@ app.use(function(req, res){
         return
     }
 
-    if (url.indexOf("/browse") !== -1) {
-        var url = decodeURIComponent(url).replace("/browse?", "")
+    if (url.indexOf("/__jscb/getValues") !== -1) {
+        var parts = url.replace("/__jscb/getValues/", "").split("/").map(parseFloat)
+        var scriptId = parts[0]
+        var valueId = parts[1]
 
-        var info = getDataStore(urlToScriptId[url])
+        var info = getDataStore(scriptId)
+        info.getValues(valueId, function(values){
+            res.end(JSON.stringify(values))
+        })
+
+
+        return
+    }
+
+    if (url.indexOf("/__jscb/getLocations") !== -1) {
+        var scriptId = parseFloat(url.replace("/__jscb/getLocations/", ""))
+
+        var info = getDataStore(scriptId)
+        res.end(JSON.stringify(info.locations))
+
+
+        return
+    }
+
+    if (url.indexOf("/__jscb/getCode") !== -1) {
+        var scriptId = parseFloat(url.replace("/__jscb/getCode/", ""))
+
+        var info = getDataStore(scriptId)
+        res.end(info.code)
+
+
+        return
+    }
+
+
+    if (req.url.indexOf("/browse") !== -1) {
+        var url = decodeURIComponent(req.url).replace("/browse?", "")
+
+        console.log("Url", url)
+        console.log(urlToScriptId)
+        var scriptId = urlToScriptId[url]
+        var info = getDataStore(scriptId)
         if (!info){
             res.end("No data for this file has been collected. Load a web page that loads this file")
         } else {
-            res.end(renderInfo(info))
+            renderInfo(info, scriptId, text => res.end(text))
+            
         }
         
     }
@@ -209,6 +289,7 @@ app.use(function(req, res){
             var ms = ended.valueOf() - started.valueOf()
             console.log("Compiling " + req.body.url + " took "  + ms + "ms")
 
+            
             dataStores[scriptId] = new DataStore({
                 code: response,
                 locations: compiled.locations,
@@ -218,9 +299,6 @@ app.use(function(req, res){
             response = compiled.code
         }
         
-        
-        
-
         var pre = fs.readFileSync(pathFromRoot("src/browser.js")).toString().replace("{{port}}", port) + "\n\n"
         response = pre + response
 
@@ -247,6 +325,7 @@ app.use(function(req, res){
 
     if (url === "/") {
         var html = fs.readFileSync(__dirname + "/ui/home.html").toString()
+        console.log("urlToScriptId", urlToScriptId)
         var scriptDataCollected = Object.keys(urlToScriptId).length  > 0
         var fileLinks
         if(scriptDataCollected) {
@@ -271,12 +350,12 @@ app.use(function(req, res){
                         <a href="/browse?${encodeURIComponent(url)}">${escape(url)}</a>
                     </td>
                     <td>
-                        {content}
+                        ${content}
                     </td>
                 `
             }).join("")
             fileLinks = "<table class=\"file-links\">"  +
-                `<thead><th>File</th><th>Locations with values</th></thead>`
+                `<thead><th>File</th><th style="min-width: 150px">Locations with values</th></thead>`
                 + fileLinks + "</table>"
         } else {
             fileLinks = "<div>No data collected. Load a website and then click the Glassdoor Chrome extension button in the top right of your browser.</div>"
@@ -294,10 +373,11 @@ app.use(function(req, res){
             return
         }
         console.log("Received " + req.body.length + " values")
-        req.body.forEach(function(data){
+
+        async.eachSeries(req.body, function iteratee(data, callback) {
             var dataStore = getDataStore(data.scriptId)
-            dataStore.reportValue(data)
-        })
+            dataStore.reportValue(data, callback) 
+        });
 
         if (saveTo) {
             var data = {
@@ -317,31 +397,34 @@ app.use(function(req, res){
     }
 });
 
-function renderInfo(info){
+function renderInfo(info,scriptId, cb){
     var res = {}
-    Object.keys(info.values).forEach(function(key){
-        var values = info.values[key]
-        if (values.length === 0) {
-            res[key] = null
-        } else {
-            res[key] = {
-                type: null, // types are out of scope for now
-                examples: values
-            }
-        }
-    })
 
-    fileName = _.last(info.url.split("/"))
-    
+    var valueIds = Object.keys(info.locations)
+    // async.eachSeries(valueIds, function iteratee(valueId, callback) {
+    //     info.getValues(valueId, function(values){
+    //         res[valueId] = {
+    //             type: null, // types are out of scope for now
+    //             examples: values
+    //         }
+    //         callback()
+    //     })
+    // }, function(){
+        // });
+    console.log("DONE")
+        fileName = _.last(info.url.split("/"))
+
+        // window.values = JSON.parse(decodeURI("${encodeURI(JSON.stringify(res))}"));
     var valueEmbeds = `
-        window.values = JSON.parse(decodeURI("${encodeURI(JSON.stringify(res))}"));
-        window.code = decodeURI("${encodeURI(info.code)}");
-        window.locations = JSON.parse(decodeURI("${encodeURI(JSON.stringify(info.locations))}"));
+        window.scriptId =${scriptId}
+        
+        
     `
 
-    return fs.readFileSync(__dirname + "/ui/file.html").toString()
+    cb(fs.readFileSync(__dirname + "/ui/file.html").toString()
         .replace("{{valueEmbeds}}", valueEmbeds)
-        .replace("{{fileName}}", fileName)
+        .replace("{{fileName}}", fileName))
+    
 }
 
 

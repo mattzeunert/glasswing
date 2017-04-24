@@ -26913,8 +26913,6 @@ module.exports = __webpack_require__(21);
 "use strict";
 
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _react = __webpack_require__(87);
@@ -26971,7 +26969,7 @@ window.start = function () {
             range: new monaco.Range(start.line, start.column, end.line, end.column),
             options: {
                 isWholeLine: false,
-                inlineClassName: "value value-" + key + " " + (values[key] && values[key].examples && values[key].examples.length ? "" : "value--no-data")
+                inlineClassName: "value value-" + key // + " " + ((values[key] && values[key].examples && values[key].examples.length) ? "" : "value--no-data")
             }
         };
 
@@ -27011,7 +27009,9 @@ var OverlayContent = function (_Component) {
 
         var _this = _possibleConstructorReturn(this, (OverlayContent.__proto__ || Object.getPrototypeOf(OverlayContent)).call(this, props));
 
-        _this.state = {};
+        _this.state = {
+            valueId: -1
+        };
         return _this;
     }
 
@@ -27020,9 +27020,17 @@ var OverlayContent = function (_Component) {
         value: function componentWillMount() {
             var _this2 = this;
 
-            setState = function setState(values) {
-                values.exampleIndex = 0;
-                _this2.setState(values);
+            setState = function setState(valueId) {
+                _this2.setState({
+                    exampleIndex: 0,
+                    valueId: valueId,
+                    examples: { examples: [] }
+                });
+                fetch("/__jscb/getValues/" + scriptId + "/" + valueId).then(function (r) {
+                    return r.json();
+                }).then(function (data) {
+                    return _this2.setState({ examples: { examples: data } });
+                });
             };
         }
     }, {
@@ -27406,56 +27414,55 @@ document.body.addEventListener("mouseover", function (e) {
     var valId = el.className.split(" ").filter(function (c) {
         return c.indexOf("value-") !== -1;
     })[0].replace(/[^0-9]/g, "");
-    var vals = window.values[valId];
-    if (!vals) {
-        vals = [];
-    }
+
     var overlay = document.getElementById("overlay");
     overlay.style.display = "block";
     overlay.setAttribute("style", "top: " + (el.getBoundingClientRect().top + 20 + window.scrollY) + "px; left: " + (el.getBoundingClientRect().left + 20) + "px" + ";position: absolute; background: white; padding: 4px; border: 1px solid #ddd;");
-    if (vals) {
-        var esc = function esc(str) {
-            if (str === undefined) debugger;
-            return str.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        };
-        // overlay.innerHTML = "<pre>" + esc(JSON.stringify(vals.examples, null, 4))  + "</pre>"
 
-        var renderTypes = function renderTypes(type, depth) {
-            if (!type) {
-                return "no info...";
-            }
-            if (!type) {
-                debugger;
-            }
-            if (depth === undefined) {
-                depth = 0;
-            }
-            console.log("render", type);
-            if (type.length > 1) {
-                return "(" + type.map(function (t) {
-                    return renderTypes([t]);
-                }).join(" | ") + ")";
-            }if (type.length === 0) {
-                return "(No type)";
-            } else {
-                var t = type[0];
-                if ((typeof t === 'undefined' ? 'undefined' : _typeof(t)) === "object") {
-                    var ret = "{\n";
-                    ret += Object.keys(t).map(function (key) {
-                        return new Array(depth + 2).join("  ") + esc(key) + (t[key].optional ? "?" : "") + ":" + renderTypes(t[key].type, depth + 1);
-                    }).join(",\n");
-                    ret += "\n" + new Array(depth + 1).join("  ") + "}";
-                    return ret;
-                } else {
-                    return esc(JSON.stringify(t, null, 4));
-                }
-            }
-        };
+    setState(valId);
 
-        setState({ examples: vals });
-    } else {
-        overlay.innerText = "No values captured. This code didn't run.";
-    }
+    // if (vals) {
+    //     setState({examples: vals})
+
+    //     function esc(str){
+    //         if(str===undefined) debugger
+    //         return str.replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    //     }
+    //     // overlay.innerHTML = "<pre>" + esc(JSON.stringify(vals.examples, null, 4))  + "</pre>"
+
+    //     function renderTypes(type, depth){
+    //         if (!type) {
+    //             return "no info..."
+    //         }
+    //         if (!type){debugger}
+    //         if (depth === undefined) {
+    //             depth =0 
+    //         }
+    //         console.log("render", type)
+    //         if (type.length > 1) {
+    //             return "(" + type.map(t => renderTypes([t])).join(" | ") + ")"
+    //         }   if (type.length === 0) {
+    //             return "(No type)"
+    //         }
+    //         else {
+    //             var t = type[0]
+    //             if (typeof t === "object") {
+    //                 var ret = "{\n"
+    //                 ret += Object.keys(t).map(function(key){
+    //                     return new Array(depth + 2).join("  ") + esc(key) + (t[key].optional ? "?" : "") + ":" + renderTypes(t[key].type, depth + 1)
+    //                 }).join(",\n")
+    //                 ret += "\n" + new Array(depth + 1).join("  ") + "}"
+    //                 return ret
+    //             } else {
+    //                 return esc(JSON.stringify(t, null, 4))
+    //             }
+
+    //         }
+
+    //     }
+    // } else {
+    //     overlay.innerText = "No values captured. This code didn't run."
+    // }
 });
 
 document.body.addEventListener("mouseout", function (e) {
