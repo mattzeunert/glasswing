@@ -142,20 +142,22 @@ function pathFromRoot(p){
 
 app.use( bodyParser.json({limit: "300mb"}) );
 app.use(function(req, res){
-    if (req.url.indexOf("/node_modules/") !== -1) {
-        var filePath = pathFromRoot(req.url.replace(/\.\./g, ""))
-        var fileContent = fs.readFileSync(path.join(__dirname + "/../", req.url.replace(/\.\./g, "")))
+    var url = req.url.split("?")[0]
+
+    if (url.indexOf("/node_modules/") !== -1) {
+        var filePath = pathFromRoot(url.replace(/\.\./g, ""))
+        var fileContent = fs.readFileSync(path.join(__dirname + "/../", url.replace(/\.\./g, "")))
         res.end(fileContent).toString()
         return
     }
 
-    if (req.url === "/__jscb/bundle.js") {
+    if (url === "/__jscb/bundle.js") {
         res.end(fs.readFileSync(pathFromRoot("src/ui/dist/bundle.js")).toString())
         return
     }
 
-    if (req.url.indexOf("/browse") !== -1) {
-        var url = decodeURIComponent(req.url).replace("/browse?", "")
+    if (url.indexOf("/browse") !== -1) {
+        var url = decodeURIComponent(url).replace("/browse?", "")
 
         var info = getDataStore(urlToScriptId[url])
         if (!info){
@@ -166,8 +168,8 @@ app.use(function(req, res){
         
     }
 
-    if (req.url.indexOf("/__jscb/fetchFunctionCode") !== -1) {
-        var parts = req.url.split("/")
+    if (url.indexOf("/__jscb/fetchFunctionCode") !== -1) {
+        var parts = url.split("/")
         var locationId = parseFloat(parts.pop())
         var scriptId = parseFloat(parts.pop())
         var store = dataStores[scriptId]
@@ -180,15 +182,16 @@ app.use(function(req, res){
         return
     }
 
-    if (req.url.indexOf("/request") !== -1) {
-        var id = req.url.split("/")[2]
-        console.log("request started", id)
+    if (url.indexOf("/request") !== -1) {
+        var id = url.split("/")[2]
+        console.log("request started", id, decodeURIComponent(req.url.split("?")[1]))
         
         resById[id] = res
         return
     }
-    if (req.url.indexOf("/response") !== -1) {
-        console.log("response", req.url.split("/")[2])
+    if (url.indexOf("/response") !== -1) {
+        var id = url.split("/")[2]
+        console.log("Response", id, req.body.url)
 
         var response = req.body.response
         if (endsWith(req.body.url, ".js") || req.body.requestType === "script") {
@@ -215,8 +218,8 @@ app.use(function(req, res){
             response = compiled.code
         }
         
-        var id = req.url.split("/")[2]
-        console.log("Response", id, req.body.url)
+        
+        
 
         var pre = fs.readFileSync(pathFromRoot("src/browser.js")).toString().replace("{{port}}", port) + "\n\n"
         response = pre + response
@@ -242,7 +245,7 @@ app.use(function(req, res){
     }
     
 
-    if (req.url === "/") {
+    if (url === "/") {
         var html = fs.readFileSync(__dirname + "/ui/home.html").toString()
         var scriptDataCollected = Object.keys(urlToScriptId).length  > 0
         var fileLinks
@@ -274,7 +277,7 @@ app.use(function(req, res){
         return
     }
 
-    if (req.url.indexOf("__jscb/reportValues") !== -1) {
+    if (url.indexOf("__jscb/reportValues") !== -1) {
         res.setHeader("Access-Control-Allow-Origin", "*")
         res.setHeader("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
         if (!req.body.length) {

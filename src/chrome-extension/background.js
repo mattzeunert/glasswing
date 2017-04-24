@@ -63,6 +63,18 @@ Session.prototype.updateBadge = function(){
 
 
  function makeOnBeforeRequest(session){
+    function injectContentScript(){
+         chrome.tabs.executeScript( session.tabId, {code: `
+            window.addEventListener("RebroadcastExtensionMessage", function(evt) {
+                console.log("REBROADCASRT", evt.detail)
+                if (!evt.detail || !evt.detail.isFromJSExtensionMessage) {
+                    return
+                }
+                chrome.runtime.sendMessage(evt.detail);
+            }, false);
+        `}, function(){})
+        session.injected = true
+    }
     return function(details) {
         session.updateBadge()
         if (details.type === "main_frame" ) {
@@ -76,18 +88,7 @@ Session.prototype.updateBadge = function(){
         }
 
         if (!session.injected) {
-            chrome.tabs.executeScript( session.tabId, {code: `
-window.addEventListener("RebroadcastExtensionMessage", function(evt) {
-    console.log("REBROADCASRT", evt.detail)
-    if (!evt.detail || !evt.detail.isFromJSExtensionMessage) {
-        return
-    }
-    chrome.runtime.sendMessage(evt.detail);
-}, false);
-                `}, function(){
-                
-            })
-            session.injected = true
+            injectContentScript()
         }
         console.log("request for", details.url)
         if (details.url.indexOf("http://localhost:" + port + "/request/") !== -1
@@ -103,45 +104,43 @@ window.addEventListener("RebroadcastExtensionMessage", function(evt) {
         var requestId = Math.floor(Math.random() * 100000000000)
         var ret
         if (session.canLoadInsecureContent) {
-            ret = {redirectUrl: "http://localhost:"  + port + "/request/" + requestId}
+            ret = {
+                redirectUrl: "http://localhost:"  + port + "/request/" + requestId + "?url=" + encodeURIComponent(details.url)
+            }
         }
         else {
-            
             ret = {cancel: true}
         }
         
         session.requestOrder.push(details.url)
 
-        
-        setTimeout(function(){
-            var oReq = new XMLHttpRequest();
-            oReq.addEventListener("load", function(){
-                console.log("loaded response for", requestId)
-                fetch("http://localhost:" + port + "/response/" + requestId, {
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        response: oReq.responseText,
-                        requestType: details.type, 
-                        url: details.url,
-                        returnProcessedContent: !session.canLoadInsecureContent
-                    }),
-                    method: "post"
-                })
-                .then(r => r.text())
-                .then(function(t){
-                    
-                    if (!session.canLoadInsecureContent) {
-                        tryInject(details.url, t)
-                        
-                    }
-                })
-            });
-            oReq.open("GET", details.url);
-            oReq.send();   
-        }, 300)
+        var oReq = new XMLHttpRequest();
+        oReq.addEventListener("load", function(){
+            console.log("loaded response for", requestId, details.url)
+            fetch("http://localhost:" + port + "/response/" + requestId + "?url=" + encodeURIComponent(details.url), {
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    response: oReq.responseText,
+                    requestType: details.type, 
+                    url: details.url,
+                    returnProcessedContent: !session.canLoadInsecureContent
+                }),
+                method: "post"
+            })
+            .then(r => r.text())
+            .then(function(t){
+                if (session.canLoadInsecureContent) {
+                    // response is delivered directly to browser
+                } else {
+                    tryInject(details.url, t)
+                }
+            })
+        });
+        oReq.open("GET", details.url);
+        oReq.send();
 
         return ret
 

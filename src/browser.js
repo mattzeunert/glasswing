@@ -174,8 +174,6 @@ function inittt() {
         console.timeEnd("Generate JSON")
         console.log("sending " + valuesToSend + " values", "size: ", body.length / 1024 /1024, "MB")
         
-        
-
         if (location.protocol === "http:") {
             fetch("http://localhost:{{port}}/__jscb/reportValues", {
                 headers: {
