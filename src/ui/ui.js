@@ -161,7 +161,7 @@ class Preview extends Component {
             return <span style={{color: "red"}}>{val.value}</span>
         }
         if (val.type === "string") {
-            return <span style={{color: "red"}}>"{val.text}"</span>
+            return <span style={{color: "red"}}>"{val.text.slice(0, 30).replace(/\n/g, "\\n")}"</span>
         }
         if (val.type === "object") {
             return <span>
@@ -179,6 +179,13 @@ class Preview extends Component {
         }
         if (val.type === "functionDetail") {
             return <FunctionPreview value={val.fn} />
+        }
+        if (val.type === "stringDetail") {
+            return <pre style={{
+                background: "#f8f8f8",
+                color: "red",
+                padding: 10
+            }}>{val.str.text}</pre>
         }
         if (val.type === "jQuery Object") {
             return <span>
@@ -225,7 +232,9 @@ class ValueExample extends Component {
                 var canExpand = (val.type === "object" || val.keyCount > 0) ||
                     (val.type === "array" && val.itemCount > 0) || 
                     (val.type === "jQuery Object" && val.elementCount > 0) ||
-                    (val.type === "function")
+                    (val.type === "function") ||
+                    (val.type === "string")
+                console.log("val.type", val.type)
                 if (canExpand) {
                     expand = <span style={{
                             color: "#777",
@@ -280,6 +289,14 @@ class ValueExample extends Component {
                     each("code", {
                         type: "functionDetail",
                         fn: e
+                    })
+                }
+            }
+            if (e && e.type === "string") {
+                if (depth === 0 || isExpanded(path)) {
+                    each("fullText", {
+                        type: "stringDetail",
+                        str: e
                     })
                 }
             }

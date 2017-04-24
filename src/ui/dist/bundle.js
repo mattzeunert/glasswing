@@ -27196,7 +27196,7 @@ var Preview = function (_Component3) {
                     'span',
                     { style: { color: "red" } },
                     '"',
-                    val.text,
+                    val.text.slice(0, 30).replace(/\n/g, "\\n"),
                     '"'
                 );
             }
@@ -27226,6 +27226,17 @@ var Preview = function (_Component3) {
             }
             if (val.type === "functionDetail") {
                 return _react2.default.createElement(FunctionPreview, { value: val.fn });
+            }
+            if (val.type === "stringDetail") {
+                return _react2.default.createElement(
+                    'pre',
+                    { style: {
+                            background: "#f8f8f8",
+                            color: "red",
+                            padding: 10
+                        } },
+                    val.str.text
+                );
             }
             if (val.type === "jQuery Object") {
                 return _react2.default.createElement(
@@ -27290,7 +27301,8 @@ var ValueExample = function (_Component4) {
                 function each(key, val) {
                     path.push(key);
                     var expand = null;
-                    var canExpand = val.type === "object" || val.keyCount > 0 || val.type === "array" && val.itemCount > 0 || val.type === "jQuery Object" && val.elementCount > 0 || val.type === "function";
+                    var canExpand = val.type === "object" || val.keyCount > 0 || val.type === "array" && val.itemCount > 0 || val.type === "jQuery Object" && val.elementCount > 0 || val.type === "function" || val.type === "string";
+                    console.log("val.type", val.type);
                     if (canExpand) {
                         expand = _react2.default.createElement(
                             'span',
@@ -27363,6 +27375,14 @@ var ValueExample = function (_Component4) {
                         each("code", {
                             type: "functionDetail",
                             fn: e
+                        });
+                    }
+                }
+                if (e && e.type === "string") {
+                    if (depth === 0 || isExpanded(path)) {
+                        each("fullText", {
+                            type: "stringDetail",
+                            str: e
                         });
                     }
                 }
