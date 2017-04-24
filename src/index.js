@@ -17,7 +17,9 @@ var bodyParser = require('body-parser')
 var url = require("url")
 
 var program = require('commander');
- 
+
+process.title = "Glasswing Server"
+
 program
   .version('1.0.0')
   .option('-p, --port [port]', 'Glasswing port - not supported yet', 9500)
@@ -33,8 +35,7 @@ var compiler = new Compiler()
 
 function beautifyJS(code){
     const prettier = require("prettier");
-
-    return prettier.format(code, {
+    const options= {
     // Indent lines with tabs
     useTabs: false,
 
@@ -69,10 +70,14 @@ function beautifyJS(code){
     // Whether to add a semicolon at the end of every line (semi: true),
     // or only at the beginning of lines that may introduce ASI failures (semi: false)
     semi: true
-    });
+        }
 
-
-    // return beautify.js_beautify(code, {indent_size: 2})
+    try {
+        return prettier.format(code, options);
+    } catch(err) {
+        console.log("Prettier error:", err)
+        return code
+    }
 }
 
 function DataStore(options){
@@ -184,57 +189,54 @@ app.use(function(req, res){
     }
     if (req.url.indexOf("/response") !== -1) {
         console.log("response", req.url.split("/")[2])
-        setTimeout(function(){
-            
-            var response = req.body.response
-            console.log("url", req.body.url)
-            if (endsWith(req.body.url, ".js") || req.body.requestType === "script") {
-                var scriptId = scriptIdCounter
-                scriptIdCounter++
-                urlToScriptId[req.body.url] = scriptId 
 
-                response = beautifyJS(response)
+        var response = req.body.response
+        if (endsWith(req.body.url, ".js") || req.body.requestType === "script") {
+            var scriptId = scriptIdCounter
+            scriptIdCounter++
+            urlToScriptId[req.body.url] = scriptId
 
-                var started = new Date()
-                var compiled = compiler.compile(response, {
-                    scriptId
-                })
-                var ended = new Date()
-                var ms = ended.valueOf() - started.valueOf()
-                console.log("Compiling " + req.body.url + " took "  + ms + "ms")
+            response = beautifyJS(response)
 
-                dataStores[scriptId] = new DataStore({
-                    code: response,
-                    locations: compiled.locations,
-                    url: req.body.url
-                })
+            var started = new Date()
+            var compiled = compiler.compile(response, {
+                scriptId
+            })
+            var ended = new Date()
+            var ms = ended.valueOf() - started.valueOf()
+            console.log("Compiling " + req.body.url + " took "  + ms + "ms")
 
-                response = compiled.code
-            }
-            
-            var id = req.url.split("/")[2]
-            console.log("resposne", id)
+            dataStores[scriptId] = new DataStore({
+                code: response,
+                locations: compiled.locations,
+                url: req.body.url
+            })
 
-            var pre = fs.readFileSync(pathFromRoot("src/browser.js")).toString().replace("{{port}}", port) + "\n\n"
-            response = pre + response
+            response = compiled.code
+        }
+        
+        var id = req.url.split("/")[2]
+        console.log("Response", id, req.body.url)
 
-            if (!req.body.returnProcessedContent) {
-                var interval = setInterval(function(){
-                    if (resById[id]) {
-                        
-                        resById[id].end(pre + response)
-                        clearInterval(interval)
-                    } else {
-                        console.log("no request yet for" + id, "waiting...")
-                    }
+        var pre = fs.readFileSync(pathFromRoot("src/browser.js")).toString().replace("{{port}}", port) + "\n\n"
+        response = pre + response
+
+        if (!req.body.returnProcessedContent) {
+            var interval = setInterval(function(){
+                if (resById[id]) {
                     
-                }, 100)
-                res.end("OK")
-            } else {
-                res.end(response)
-            }
-            
-        }, 100)
+                    resById[id].end(pre + response)
+                    clearInterval(interval)
+                } else {
+                    console.log("no request yet for" + id, "waiting...")
+                }
+                
+            }, 100)
+            res.end("OK")
+        } else {
+            res.end(response)
+        }
+        
         
         return
     }
