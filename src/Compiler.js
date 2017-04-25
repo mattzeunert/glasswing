@@ -3,7 +3,11 @@ const t = require("babel-types")
 
 
 function Compiler(){
-    
+    console.log(this.compile(`t[o][0].call(l.exports, function(e) {
+                    var n = t[o][1][e];
+                    return s(n ? n : e)
+                }, l, l.exports, e, t, n, r)`, {scriptId: 10}).code)
+
 }
 Compiler.prototype.compile = function(code, options){
     var plugin = getPlugin(options.scriptId, code)
@@ -99,11 +103,16 @@ function getPlugin(scriptId, js){
                     }
                     if (path.node.ignore) {return}
                     path.node.ignore = true
+
+                    var prop = path.node.property
+                    if (prop.type === "Identifier" && !path.node.computed) {
+                        prop = t.stringLiteral(prop.name)
+                    }
                     path.replaceWith(
-                        makeRecordValueCall(
+                        makeMemberExpressionCall(
                             path.node.property,
-                            path.node,
-                            path.node.object
+                            path.node.object,
+                            prop
                         )
                     )
                     
@@ -141,7 +150,7 @@ function getPlugin(scriptId, js){
         call.ignore = true
         return call
     }
-    function makeRecordValueCall(node, value, memberExpressionParent, type){
+    function makeRecordValueCall(node, value, ____removed, type){
         var args = [
                 t.NumericLiteral(scriptId),
                 t.NumericLiteral(getValueId({
@@ -153,12 +162,30 @@ function getPlugin(scriptId, js){
                 value
             ]
     
-        if (memberExpressionParent) {
-            args.push(memberExpressionParent)
-        }
 
         var call =t.callExpression(
             t.identifier("__jscbRV"),
+            args
+        )
+        call.ignore = true
+        return call
+    }
+    function makeMemberExpressionCall(node, object, property, type){
+        var args = [
+                t.NumericLiteral(scriptId),
+                t.NumericLiteral(getValueId({
+                    start: node.start,
+                    end: node.end,
+                    loc: node.loc,
+                    type
+                })),
+                object,
+                property
+            ]
+    
+
+        var call =t.callExpression(
+            t.identifier("__jscbME"),
             args
         )
         call.ignore = true

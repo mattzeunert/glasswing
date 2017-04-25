@@ -8,7 +8,7 @@ function inittt() {
     var recordedValueBuffer = []
     var numberOfValuesCollectedByScriptIdValueId = {}
     var __jscb = {
-        recordValue: function(scriptId, valueId, value, memberExpressionParent){
+        recordValue: function(scriptId, valueId, value){
             var id = scriptId + "_" + valueId
             if (!numberOfValuesCollectedByScriptIdValueId[id]) {
                 numberOfValuesCollectedByScriptIdValueId[id] = 0
@@ -18,7 +18,7 @@ function inittt() {
                 return value
             }
             numberOfValuesCollectedByScriptIdValueId[id] = numberOfValuesCollectedByScriptIdValueId[id] + 1
-            
+
 
             recordedValueBuffer.push({scriptId, valueId, value: __jscb.serializeValue(value)})
             
@@ -29,6 +29,7 @@ function inittt() {
     window.__jscb = __jscb
 
     function serializeValue(value, depth){
+        // return {obj: "dont bother"}
         // try {
         //     console.log("serializng", value)
         // } catch (err){console.log("serilaizng sth")}
@@ -145,8 +146,13 @@ function inittt() {
         // don't need to do anything here...
     }
     // todo: make sure all values are actually sent... probs best to test by setting valuestosend max to 1 or 2
-    window.__jscbRV = function(scriptId, valueId, value, memberExpressionParent){
+    window.__jscbRV = function(scriptId, valueId, value){
         return __jscb.recordValue.apply(this, arguments)
+    }
+    window.__jscbME = function(scriptId, valueId, object, property) {
+        var value = object[property]
+        __jscb.recordValue(scriptId, valueId, value)
+        return value
     }
     setInterval(function(){
         if (recordedValueBuffer.length === 0) {

@@ -1,6 +1,6 @@
 module.exports = function getType(values){
     var types = []
-    console.log(values)
+    // console.log(values)
     values.forEach(function(value){
         var type = null
         if (typeof value === "number") {
@@ -34,7 +34,7 @@ module.exports = function getType(values){
             if (type == null){
                 type = {}
                 Object.keys(value.data).forEach(function(key){
-                    console.log("key", key)
+                    // console.log("key", key)
                     type[key] = {
                         type: getType([value.data[key]])
                     }
