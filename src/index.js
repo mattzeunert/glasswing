@@ -42,7 +42,7 @@ function KeyValueStore(storeIn){
 KeyValueStore.prototype.put = function(key, value, callback){
     this.db.put(key, value, function (err) {
         if (err) {
-            console.log("PUt err", err)
+            console.log("LevelDB put err", err)
         }
         callback()
     })
@@ -50,7 +50,7 @@ KeyValueStore.prototype.put = function(key, value, callback){
 KeyValueStore.prototype.get = function(key, callback){
     this.db.get(key, function (err, value) {
         if (err) {
-            console.log("PUt err", err)
+            
         }
         callback(value)
     })
