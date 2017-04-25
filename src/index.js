@@ -105,6 +105,14 @@ function beautifyJS(code){
 
 var async = require("async")
 
+var perf = {}
+function logPerfStart(label){
+    perf[label] = new Date()
+}
+function logPerfEnd(label){
+    console.log(label, "took", new Date().valueOf() - perf[label].valueOf(), "ms")
+}
+
 function DataStore(options){
     console.log("new datastore with", options.url)
     // random b/c sometiems we have multipel stroes with same id.. shoudl really be same store
@@ -290,15 +298,15 @@ app.use(function(req, res){
                 urlToScriptId[req.body.url] = scriptId
             }
             
+            logPerfStart("Prettify " + req.body.url)
             response = beautifyJS(response)
+            logPerfEnd("Prettify " + req.body.url)
 
-            var started = new Date()
+            logPerfStart("Compile " + req.body.url)
             var compiled = compiler.compile(response, {
                 scriptId
             })
-            var ended = new Date()
-            var ms = ended.valueOf() - started.valueOf()
-            console.log("Compiling " + req.body.url + " took "  + ms + "ms")
+            logPerfEnd("Compile " + req.body.url)
 
             if (!dataStores[scriptId]) {
                 dataStores[scriptId] = new DataStore({
@@ -389,26 +397,30 @@ app.use(function(req, res){
         }
         console.log("Received " + req.body.length + " values")
 
+        logPerfStart("Save " + req.body.length + "values")
         async.eachSeries(req.body, function iteratee(data, callback) {
             var dataStore = getDataStore(data.scriptId)
             dataStore.reportValue(data, callback) 
+        }, function(){
+            logPerfEnd("Save " + req.body.length + "values")
+            if (saveTo) {
+                var data = {
+                    stores: _.mapValues(dataStores, s => s.serialize()),
+                    scriptIdCounter: scriptIdCounter,
+                    urlToScriptId: urlToScriptId
+                }
+
+                var stringifiedData = JSON.stringify(data, null, 4)
+                var mb = Math.round(stringifiedData.length / 1024 / 1024)
+                console.log("Saving data to " + saveTo + ": " + mb + "MB")
+                fs.writeFileSync(saveTo, stringifiedData)
+            }
+            
+            
+            res.end('{"status": "success"}')
         });
 
-        if (saveTo) {
-            var data = {
-                stores: _.mapValues(dataStores, s => s.serialize()),
-                scriptIdCounter: scriptIdCounter,
-                urlToScriptId: urlToScriptId
-            }
-
-            var stringifiedData = JSON.stringify(data, null, 4)
-            var mb = Math.round(stringifiedData.length / 1024 / 1024)
-            console.log("Saving data to " + saveTo + ": " + mb + "MB")
-            fs.writeFileSync(saveTo, stringifiedData)
-        }
         
-        
-        res.end('{"status": "success"}')
     }
 });
 
