@@ -348,13 +348,10 @@ app.use(function(req, res){
 
     if (url === "/") {
         var html = fs.readFileSync(__dirname + "/ui/home.html").toString()
-        console.log("urlToScriptId", urlToScriptId)
         var scriptDataCollected = Object.keys(urlToScriptId).length  > 0
         var fileLinks
         if(scriptDataCollected) {
             fileLinks = Object.keys(urlToScriptId).map(url => {
-                console.log(urlToScriptId)
-                console.log("Url", url)
                 var scriptId = urlToScriptId[url]
                 var store = dataStores[scriptId]
                 var content = ""

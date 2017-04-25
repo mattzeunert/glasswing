@@ -177,6 +177,9 @@ class Preview extends Component {
         if (val.type === "function") {
             return <span>(Function)</span>
         }
+        if (val.type === "undefined") {
+            return <span style={{color: "blue"}}>undefined</span>
+        }
         if (val.type === "functionDetail") {
             return <FunctionPreview value={val.fn} />
         }
@@ -197,7 +200,7 @@ class Preview extends Component {
                 {"<" + val.tagName.toLowerCase() + ">" + val.innerHTML + "<" + val.tagName.toLowerCase() + ">"}
             </span>
         }
-        return <span>(No preview)</span>
+        return <span>(No preview) <br/><pre>{JSON.stringify(val)}</pre></span>
 
     }
 }

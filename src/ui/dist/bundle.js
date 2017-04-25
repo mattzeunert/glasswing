@@ -27224,6 +27224,13 @@ var Preview = function (_Component3) {
                     '(Function)'
                 );
             }
+            if (val.type === "undefined") {
+                return _react2.default.createElement(
+                    'span',
+                    { style: { color: "blue" } },
+                    'undefined'
+                );
+            }
             if (val.type === "functionDetail") {
                 return _react2.default.createElement(FunctionPreview, { value: val.fn });
             }
@@ -27257,7 +27264,13 @@ var Preview = function (_Component3) {
             return _react2.default.createElement(
                 'span',
                 null,
-                '(No preview)'
+                '(No preview) ',
+                _react2.default.createElement('br', null),
+                _react2.default.createElement(
+                    'pre',
+                    null,
+                    JSON.stringify(val)
+                )
             );
         }
     }]);
