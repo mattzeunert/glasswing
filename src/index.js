@@ -109,7 +109,7 @@ function DataStore(options){
     console.log("new datastore with", options.url)
     // random b/c sometiems we have multipel stroes with same id.. shoudl really be same store
     if (!options.dbFileName) {
-        this.dbFileName = encodeURIComponent(options.url).slice(-100) + Math.floor(Math.random() * 10000)
+        this.dbFileName = encodeURIComponent(options.url).slice(-100)
     } else {
         this.dbFileName = options.dbFileName
     }
@@ -283,10 +283,13 @@ app.use(function(req, res){
 
         var response = req.body.response
         if (endsWith(req.body.url, ".js") || req.body.requestType === "script") {
-            var scriptId = scriptIdCounter
-            scriptIdCounter++
-            urlToScriptId[req.body.url] = scriptId
-
+            var scriptId = urlToScriptId[req.body.url]
+            if (!scriptId){
+                scriptId = scriptIdCounter
+                scriptIdCounter++
+                urlToScriptId[req.body.url] = scriptId
+            }
+            
             response = beautifyJS(response)
 
             var started = new Date()
@@ -297,12 +300,16 @@ app.use(function(req, res){
             var ms = ended.valueOf() - started.valueOf()
             console.log("Compiling " + req.body.url + " took "  + ms + "ms")
 
+            if (!dataStores[scriptId]) {
+                dataStores[scriptId] = new DataStore({
+                    code: response,
+                    locations: compiled.locations,
+                    url: req.body.url
+                })
+            } else {
+                console.log("re-using datastore for url", req.body.url)
+            }
             
-            dataStores[scriptId] = new DataStore({
-                code: response,
-                locations: compiled.locations,
-                url: req.body.url
-            })
 
             response = compiled.code
         }
