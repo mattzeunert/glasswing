@@ -5,7 +5,7 @@ var getType = require("./analysis")
 var fs = require("fs")
 var _ = require("lodash")
 const path = require('path');
-
+var mkdirp = require('mkdirp')
 
 // not used anymore, using chrome extension to intercept request
 var rewriteHtml = require("./rewriteHtml")
@@ -108,7 +108,12 @@ var async = require("async")
 function DataStore(options){
     console.log("new datastore with", options.url)
     // random b/c sometiems we have multipel stroes with same id.. shoudl really be same store
-    this.values = new KeyValueStore(saveToDir + "/" + encodeURIComponent(options.url).slice(-100) + Math.floor(Math.random() * 10000)) 
+    if (!options.dbFileName) {
+        this.dbFileName = encodeURIComponent(options.url).slice(-100) + Math.floor(Math.random() * 10000)
+    } else {
+        this.dbFileName = options.dbFileName
+    }
+    this.values = new KeyValueStore(saveToDir + "/" + this.dbFileName) 
 
     this.url = options.url
     this.locations = options.locations
@@ -132,7 +137,7 @@ DataStore.prototype.getValues = function(valueId, callback){
 }
 DataStore.prototype.serialize = function(){
     return {
-        values: this.values,
+        dbFileName: this.dbFileName,
         url: this.url,
         locations: this.locations,
         code: this.code
@@ -140,7 +145,6 @@ DataStore.prototype.serialize = function(){
 }
 DataStore.deserialize =  function(data){
     var store = new DataStore(data)
-    store.values = data.values
     return store
 }
 
@@ -155,12 +159,15 @@ var scriptIdCounter = 1
 
 const resById = {}
 
-
-var saveToDir = "./data"
-
+var saveToDir = null
 var saveTo = null
 if (program.save) {
+    saveToDir = program.save
+    mkdirp.sync(program.save)
     saveTo = program.save + "/data.json"
+} else {
+    console.error("--save option is required, pass in a directory like /tmp/glasswing1")
+    process.exit()
 }
 
 if (saveTo) {
@@ -174,6 +181,7 @@ if (saveTo) {
         dataStores = _.mapValues(data.stores, s => {
             return DataStore.deserialize(s)
         })
+        console.log("loaded urlToScriptId", urlToScriptId)
     }
 }
 
