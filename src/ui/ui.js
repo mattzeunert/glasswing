@@ -6,7 +6,8 @@ window.start = function(){
     window.editor = monaco.editor.create(document.getElementById("code-container"), {
         value: window.code,
         language: "javascript",
-        readOnly: true
+        readOnly: true,
+        scrollBeyondLastLine: false,
     });
 
     window.addEventListener("resize", function(){
