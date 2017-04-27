@@ -23,6 +23,7 @@ process.title = "Glasswing Server"
 program
   .version('1.0.0')
   .option('-p, --port [port]', 'Glasswing port - not supported yet', 9500)
+  .option('-v, --verbose', false)
   .option('-p, --save [path]', 'Directory to save data in')
   .parse(process.argv);
 
@@ -36,7 +37,6 @@ var compiler = new Compiler()
 var level = require('level')
 
 function KeyValueStore(storeIn){
-    console.log("creating lvel db", storeIn)
     this.db = level(storeIn)
 }
 KeyValueStore.prototype.put = function(key, value, callback){
@@ -105,17 +105,15 @@ function beautifyJS(code){
 
 var async = require("async")
 
-var perf = {}
-function logPerfStart(label){
-    perf[label] = new Date()
-}
-function logPerfEnd(label){
-    console.log(label, "took", new Date().valueOf() - perf[label].valueOf(), "ms")
-}
+
+
+var logger = require("./logger")
+logger.setConfig(program.verbose)
+
+
+
 
 function DataStore(options){
-    console.log("new datastore with", options.url)
-    // random b/c sometiems we have multipel stroes with same id.. shoudl really be same store
     if (!options.dbFileName) {
         this.dbFileName = encodeURIComponent(options.url).slice(-100)
     } else {
@@ -189,7 +187,6 @@ if (saveTo) {
         dataStores = _.mapValues(data.stores, s => {
             return DataStore.deserialize(s)
         })
-        console.log("loaded urlToScriptId", urlToScriptId)
     }
 }
 
@@ -199,6 +196,7 @@ function pathFromRoot(p){
 
 app.use( bodyParser.json({limit: "300mb"}) );
 app.use(function(req, res){
+    logger.logRequest(req.method, req.url)
     var url = req.url.split("?")[0]
 
     if (url.indexOf("/node_modules/") !== -1) {
@@ -222,7 +220,6 @@ app.use(function(req, res){
         info.getValues(valueId, function(values){
             res.end(JSON.stringify(values))
         })
-
 
         return
     }
@@ -251,8 +248,6 @@ app.use(function(req, res){
     if (req.url.indexOf("/browse") !== -1) {
         var url = decodeURIComponent(req.url).replace("/browse?", "")
 
-        console.log("Url", url)
-        console.log(urlToScriptId)
         var scriptId = urlToScriptId[url]
         var info = getDataStore(scriptId)
         if (!info){
@@ -280,14 +275,12 @@ app.use(function(req, res){
 
     if (url.indexOf("/request") !== -1) {
         var id = url.split("/")[2]
-        console.log("request started", id, decodeURIComponent(req.url.split("?")[1]))
         
         resById[id] = res
         return
     }
     if (url.indexOf("/response") !== -1) {
         var id = url.split("/")[2]
-        console.log("Response", id, req.body.url)
 
         var response = req.body.response
         if (endsWith(req.body.url, ".js") || req.body.requestType === "script") {
@@ -298,15 +291,15 @@ app.use(function(req, res){
                 urlToScriptId[req.body.url] = scriptId
             }
             
-            logPerfStart("Prettify " + req.body.url)
+            logger.logPerfStart("Prettify " + req.body.url)
             response = beautifyJS(response)
-            logPerfEnd("Prettify " + req.body.url)
+            logger.logPerfEnd("Prettify " + req.body.url)
 
-            logPerfStart("Compile " + req.body.url)
+            logger.logPerfStart("Compile " + req.body.url)
             var compiled = compiler.compile(response, {
                 scriptId
             })
-            logPerfEnd("Compile " + req.body.url)
+            logger.logPerfEnd("Compile " + req.body.url)
 
             if (!dataStores[scriptId]) {
                 dataStores[scriptId] = new DataStore({
@@ -335,7 +328,7 @@ app.use(function(req, res){
                     resById[id].end(pre + response)
                     clearInterval(interval)
                 } else {
-                    console.log("no request yet for" + id, "waiting...")
+                    
                 }
                 
             }, 100)
@@ -395,14 +388,14 @@ app.use(function(req, res){
             res.end()
             return
         }
-        console.log("Received " + req.body.length + " values")
+        logger.logReceivedValues(req.body)
 
-        logPerfStart("Save " + req.body.length + "values")
+        logger.logPerfStart("Save " + req.body.length + " values")
         async.eachSeries(req.body, function iteratee(data, callback) {
             var dataStore = getDataStore(data.scriptId)
             dataStore.reportValue(data, callback) 
         }, function(){
-            logPerfEnd("Save " + req.body.length + "values")
+            logger.logPerfEnd("Save " + req.body.length + " values")
             if (saveTo) {
                 var data = {
                     stores: _.mapValues(dataStores, s => s.serialize()),
@@ -412,7 +405,7 @@ app.use(function(req, res){
 
                 var stringifiedData = JSON.stringify(data, null, 4)
                 var mb = Math.round(stringifiedData.length / 1024 / 1024)
-                console.log("Saving data to " + saveTo + ": " + mb + "MB")
+                logger.debug("Saving data to " + saveTo + ": " + mb + "MB")
                 fs.writeFileSync(saveTo, stringifiedData)
             }
             
@@ -438,7 +431,6 @@ function renderInfo(info,scriptId, cb){
     //     })
     // }, function(){
         // });
-    console.log("DONE")
         fileName = _.last(info.url.split("/"))
 
         // window.values = JSON.parse(decodeURI("${encodeURI(JSON.stringify(res))}"));
