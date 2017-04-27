@@ -27054,14 +27054,21 @@ var OverlayContent = function (_Component) {
                                 return JSON.stringify(prevExample) == JSON.stringify(e);
                             });
                             var isUnique = previousExamplesThatAreSame.length === 0;
+                            var isSelected = _this3.state.exampleIndex === i;
+                            var className = "example-nav-item ";
+                            if (isUnique) {
+                                className += "example-nav-item__unique ";
+                            }
+                            if (isSelected) {
+                                className += "example-nav-item__selected ";
+                            }
                             return _react2.default.createElement(
                                 'button',
                                 {
                                     onClick: function onClick() {
                                         return _this3.setState({ exampleIndex: i });
                                     },
-                                    style: { color: _this3.state.exampleIndex === i ? "red" : "" },
-                                    className: "example-nav-item " + (isUnique ? "example-nav-item__unique" : ""),
+                                    className: className,
                                     onMouseEnter: function onMouseEnter() {
                                         return _this3.setState({ previewExampleIndex: i });
                                     },

@@ -105,10 +105,17 @@ class OverlayContent extends Component {
                             return JSON.stringify(prevExample) == JSON.stringify(e)
                         })
                         var isUnique = previousExamplesThatAreSame.length === 0
+                        var isSelected = this.state.exampleIndex === i
+                        var className = "example-nav-item "
+                        if (isUnique) {
+                            className += "example-nav-item__unique "   
+                        }
+                        if (isSelected ){ 
+                            className += "example-nav-item__selected "   
+                        }
                         return <button
                             onClick={() => this.setState({exampleIndex: i})}
-                            style={{color: this.state.exampleIndex === i ? "red" :""}}
-                            className={"example-nav-item " + (isUnique ? "example-nav-item__unique" : "")}
+                            className={className}
                             onMouseEnter={() => this.setState({previewExampleIndex: i})}
                             onMouseLeave={() => this.setState({previewExampleIndex: null})}
                             >
