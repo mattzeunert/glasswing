@@ -83,18 +83,25 @@ class OverlayContent extends Component {
                 exampleIndex: 0,
                 previewExampleIndex: null,
                 valueId: valueId,
-                examples: {examples: []}
+                examples: {examples: []},
+                hasFetchedExamples: false
             })
             fetch("/__jscb/getValues/" + scriptId + "/" + valueId)
             .then(r=>r.json())
-            .then(data => this.setState({examples: {examples: data}}))
+            .then(data => this.setState({
+                examples: {examples: data},
+                hasFetchedExamples: true
+            }))
         }
     }
     render(){
+        if (!this.state.hasFetchedExamples) {
+            return null
+        }
+
         if (this.state.examples) {
             var examples = this.state.examples.examples
             window.openingId++
-
 
             var exampleNav = null;
             if (examples && examples.length > 1) {

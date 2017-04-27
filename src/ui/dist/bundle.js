@@ -27025,12 +27025,16 @@ var OverlayContent = function (_Component) {
                     exampleIndex: 0,
                     previewExampleIndex: null,
                     valueId: valueId,
-                    examples: { examples: [] }
+                    examples: { examples: [] },
+                    hasFetchedExamples: false
                 });
                 fetch("/__jscb/getValues/" + scriptId + "/" + valueId).then(function (r) {
                     return r.json();
                 }).then(function (data) {
-                    return _this2.setState({ examples: { examples: data } });
+                    return _this2.setState({
+                        examples: { examples: data },
+                        hasFetchedExamples: true
+                    });
                 });
             };
         }
@@ -27038,6 +27042,10 @@ var OverlayContent = function (_Component) {
         key: 'render',
         value: function render() {
             var _this3 = this;
+
+            if (!this.state.hasFetchedExamples) {
+                return null;
+            }
 
             if (this.state.examples) {
                 var examples = this.state.examples.examples;
