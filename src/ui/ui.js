@@ -148,7 +148,10 @@ class OverlayContent extends Component {
             else {
                 exampleView = <span>No value captured, this code didn't run.</span>
             }
-            return <div style={{fontFamily: "monospace", cursor: "default"}}>
+            return <div style={{fontFamily: "monospace", cursor: "default", 
+                border: "1px solid #ddd",
+                background: "white"
+            }}>
                 {exampleNav}
                 <div style={{padding: 4}}>
                     {exampleView}
@@ -417,9 +420,9 @@ document.body.addEventListener("mouseover", function(e){
     var overlay = document.getElementById("overlay")
     overlay.style.display = "block"
     overlay.setAttribute("style",
-        "top: " + (el.getBoundingClientRect().top + 20 + window.scrollY) +
+        "top: " + (el.getBoundingClientRect().top + window.scrollY) +
         "px; left: " + (el.getBoundingClientRect().left) + "px"
-        + ";position: absolute; background: white; border: 1px solid #ddd;"
+        + ";position: absolute;padding-top: 20px"
     )
 
     setState(valId)

@@ -27111,7 +27111,10 @@ var OverlayContent = function (_Component) {
                 }
                 return _react2.default.createElement(
                     'div',
-                    { style: { fontFamily: "monospace", cursor: "default" } },
+                    { style: { fontFamily: "monospace", cursor: "default",
+                            border: "1px solid #ddd",
+                            background: "white"
+                        } },
                     exampleNav,
                     _react2.default.createElement(
                         'div',
@@ -27536,7 +27539,7 @@ document.body.addEventListener("mouseover", function (e) {
     lastEnteredId = valId;
     var overlay = document.getElementById("overlay");
     overlay.style.display = "block";
-    overlay.setAttribute("style", "top: " + (el.getBoundingClientRect().top + 20 + window.scrollY) + "px; left: " + el.getBoundingClientRect().left + "px" + ";position: absolute; background: white; border: 1px solid #ddd;");
+    overlay.setAttribute("style", "top: " + (el.getBoundingClientRect().top + window.scrollY) + "px; left: " + el.getBoundingClientRect().left + "px" + ";position: absolute;padding-top: 20px");
 
     setState(valId);
 });
