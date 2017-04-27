@@ -27006,6 +27006,16 @@ var setState = null;
 
 window.openingId = 1;
 
+function getValues(scriptId, valueId, cb) {
+    if (window.valueCache[valueId]) {
+        cb(window.valueCache[valueId]);
+    } else {
+        fetch("/__jscb/getValues/" + scriptId + "/" + valueId).then(function (r) {
+            return r.json();
+        }).then(cb);
+    }
+}
+
 var OverlayContent = function (_Component) {
     _inherits(OverlayContent, _Component);
 
@@ -27033,11 +27043,9 @@ var OverlayContent = function (_Component) {
                     examples: { examples: [] },
                     hasFetchedExamples: false
                 });
-                fetch("/__jscb/getValues/" + scriptId + "/" + valueId).then(function (r) {
-                    return r.json();
-                }).then(function (data) {
+                getValues(scriptId, valueId, function (examples) {
                     return _this2.setState({
-                        examples: { examples: data },
+                        examples: { examples: examples },
                         hasFetchedExamples: true
                     });
                 });

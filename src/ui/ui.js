@@ -75,6 +75,16 @@ var setState = null
 
 window.openingId = 1;
 
+function getValues(scriptId, valueId, cb){
+    if (window.valueCache[valueId]) {
+        cb(window.valueCache[valueId])
+    } else {
+        fetch("/__jscb/getValues/" + scriptId + "/" + valueId)
+        .then(r=>r.json())
+        .then(cb)
+    }
+}
+
 class OverlayContent extends Component {
     constructor(props){
         super(props)
@@ -91,10 +101,8 @@ class OverlayContent extends Component {
                 examples: {examples: []},
                 hasFetchedExamples: false
             })
-            fetch("/__jscb/getValues/" + scriptId + "/" + valueId)
-            .then(r=>r.json())
-            .then(data => this.setState({
-                examples: {examples: data},
+            getValues(scriptId, valueId, (examples) => this.setState({
+                examples: {examples},
                 hasFetchedExamples: true
             }))
         }

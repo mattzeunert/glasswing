@@ -150,6 +150,20 @@ function pathFromRoot(p){
     return path.join(__dirname + "/../", p)
 }
 
+function getAllValues(scriptId, cb){
+    var store = getDataStore(scriptId)
+
+    var allValues = {}
+    async.eachSeries( Object.keys(store.locations), function iteratee(valueId, callback) {
+        store.getValues(valueId, function(values){
+            allValues[valueId] = values
+            callback()
+        })
+    }, function(){
+        cb(allValues)
+    });
+}
+
 app.use( bodyParser.json({limit: "300mb"}) );
 app.use(function(req, res){
     logger.logRequest(req.method, req.url)
@@ -209,7 +223,8 @@ app.use(function(req, res){
         if (!info){
             res.end("No data for this file has been collected. Load a web page that loads this file")
         } else {
-            renderInfo(info, scriptId, text => res.end(text))
+            var isDemo = true;
+            renderInfo(info, scriptId, isDemo, text => res.end(text))
             
         }
         
@@ -373,7 +388,7 @@ app.use(function(req, res){
     }
 });
 
-function renderInfo(info,scriptId, cb){
+function renderInfo(info,scriptId, isDemo, cb){
     var res = {}
 
     var valueIds = Object.keys(info.locations)
@@ -391,14 +406,32 @@ function renderInfo(info,scriptId, cb){
 
         // window.values = JSON.parse(decodeURI("${encodeURI(JSON.stringify(res))}"));
     var valueEmbeds = `
-        window.scriptId =${scriptId}
-        
-        
+        window.scriptId =${scriptId};
     `
 
-    cb(fs.readFileSync(__dirname + "/ui/file.html").toString()
+    allValues = {}
+    new Promise(function(cont){
+        if (isDemo){
+            getAllValues(scriptId, function(allV){
+                allValues = allV
+                cont()
+            })
+            
+        } else {
+            cont()
+        }
+    })
+    .then(function(){
+        valueEmbeds += "window.valueCache = " + JSON.stringify(allValues) + ";"
+
+        cb(fs.readFileSync(__dirname + "/ui/file.html").toString()
         .replace("{{valueEmbeds}}", valueEmbeds)
         .replace("{{fileName}}", fileName))
+    })
+    
+
+
+    
     
 }
 
