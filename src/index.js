@@ -223,7 +223,7 @@ app.use(function(req, res){
         if (!info){
             res.end("No data for this file has been collected. Load a web page that loads this file")
         } else {
-            var isDemo = true;
+            var isDemo = false;
             renderInfo(info, scriptId, isDemo, text => res.end(text))
             
         }
@@ -388,6 +388,39 @@ app.use(function(req, res){
     }
 });
 
+function exportDemo(scriptId){
+    var store = getDataStore(scriptId)
+
+    var demoName = "simple"
+
+    var parentDir= "docs/demos"
+    var outDir = parentDir + "/" + demoName
+    mkdirp.sync(outDir)
+
+    getAllValues(scriptId, function(allValues){
+        fs.writeFileSync(outDir + "/values.json", JSON.stringify(allValues, null, 4))
+        
+        fs.writeFileSync(outDir + "/locations.json", JSON.stringify(store.locations, null, 4))
+
+        var code = JSON.stringify(store.code)
+        fs.writeFileSync(outDir + "/code.js", store.code)
+
+        var html = renderInfo(store, scriptId, true, function(html){
+            fs.writeFileSync(outDir + "/index.html", html)
+
+            var ncp = require('ncp').ncp;
+
+            ncp(pathFromRoot("node_modules/monaco-editor"), parentDir + "/monaco-editor", function(){
+                var bundle = fs.readFileSync(pathFromRoot("src/ui/dist/bundle.js")).toString()
+                fs.writeFileSync(parentDir + "/bundle.js", bundle)
+                console.log("DONE")
+            })
+        })
+    })
+}
+
+// exportDemo(urlToScriptId["http://localhost:7777/demos/simple.js"])
+
 function renderInfo(info,scriptId, isDemo, cb){
     var res = {}
 
@@ -402,32 +435,68 @@ function renderInfo(info,scriptId, isDemo, cb){
     //     })
     // }, function(){
         // });
-        fileName = _.last(info.url.split("/"))
+    fileName = _.last(info.url.split("/"))
 
         // window.values = JSON.parse(decodeURI("${encodeURI(JSON.stringify(res))}"));
     var valueEmbeds = `
         window.scriptId =${scriptId};
+        window.isDemo = ${isDemo ? "true" : "false"}
     `
 
-    allValues = {}
-    new Promise(function(cont){
-        if (isDemo){
-            getAllValues(scriptId, function(allV){
-                allValues = allV
-                cont()
-            })
-            
-        } else {
-            cont()
-        }
-    })
-    .then(function(){
-        valueEmbeds += "window.valueCache = " + JSON.stringify(allValues) + ";"
+    
 
-        cb(fs.readFileSync(__dirname + "/ui/file.html").toString()
-        .replace("{{valueEmbeds}}", valueEmbeds)
-        .replace("{{fileName}}", fileName))
-    })
+ 
+    var scriptEmbeds = ""
+    if (isDemo){
+        scriptEmbeds = `
+        <script>
+            fetch("locations.json")
+            .then(r => r.json())
+            .then(locations => {
+                window.locations = locations
+
+                fetch("code.js")
+                .then(r => r.text())
+                .then(code => {
+                    window.code = code
+
+                    fetch("values.json")
+                    .then(r => r.json())
+                    .then(function(values){
+                        window.valueCache = values
+                        launch()
+                    })
+                })
+            })
+        </script>
+        `
+    }
+
+    if (isDemo){
+        scriptEmbeds += `
+        <script src="../monaco-editor/min/vs/loader.js"></script>
+            <script>
+                window.monacoVsRoot = '../monaco-editor/min/vs'
+            </script>
+            <script src="../bundle.js"></script>
+            
+        `
+    } else {
+        scriptEmbeds += `
+        <script src="../node_modules/monaco-editor/min/vs/loader.js"></script>
+            <script>
+                window.monacoVsRoot = '/node_modules/monaco-editor/min/vs'
+            </script>
+            <script src="/__jscb/bundle.js"></script>
+            
+        `
+    }
+
+
+    cb(fs.readFileSync(__dirname + "/ui/file.html").toString()
+    .replace("{{valueEmbeds}}", valueEmbeds)
+    .replace("{{scriptEmbeds}}", scriptEmbeds)
+    .replace("{{fileName}}", fileName))
     
 
 

@@ -48,36 +48,56 @@
             </style>
         </div>
         <div id="overlay"></div>
-        <br><br><br>
         
+        <br><br><br>
 
-         
+<script>
+    window.valueCache = {}
 
-        <script>
-            
-            {{valueEmbeds}}
-
-            
-        </script>
-        <script src="/__jscb/bundle.js"></script>
-
-           <script src="../node_modules/monaco-editor/min/vs/loader.js"></script>
-    <script>
-        fetch("/__jscb/getLocations/" + scriptId)
-        .then(r => r.json())
-        .then(locations =>{
-            window.locations = locations
-            fetch("/__jscb/getCode/" + scriptId)
-            .then(r => r.text())
-            .then(code =>{
-                window.code = code
-                console.log("has locations")
-                require.config({ paths: { 'vs': '/node_modules/monaco-editor/min/vs' }});
+            function launch(){
+                require.config({ paths: { 'vs': monacoVsRoot }});
                 require(['vs/editor/editor.main'], function() {
                     start()
                     
                 });
+            }
+                
+
+            </script>
+
+{{scriptEmbeds}}
+
+        
+
+
+        
+
+
+
+        <script>
+            
+            {{valueEmbeds}}
+            
+
+            
+        </script>
+        
+
+           
+    <script>
+        if (!isDemo){ 
+            fetch("/__jscb/getLocations/" + scriptId)
+            .then(r => r.json())
+            .then(locations =>{
+                window.locations = locations
+                fetch("/__jscb/getCode/" + scriptId)
+                .then(r => r.text())
+                .then(code =>{
+                    window.code = code
+                    console.log("has locations")
+                    launch()
+                })
             })
-        })
+        }
     </script>
 </body></html>

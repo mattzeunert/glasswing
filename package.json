@@ -9,7 +9,9 @@
     "karma": "karma start",
     "karma-ci": "karma start --single-run",
     "build": "webpack",
-    "develop": "webpack --watch"
+    "develop": "webpack --watch",
+    "nodemon": "nodemon --ignore docs ./bin/glasswing.js --save data --verbose",
+    "jekyll": "jekyll server --watch --source ./docs --destination ./docs/_site"
   },
   "bin": {
     "glasswing": "bin/glasswing.js"
@@ -41,6 +43,7 @@
     "lodash": "^4.17.4",
     "mkdirp": "^0.5.1",
     "monaco-editor": "^0.8.3",
+    "ncp": "^2.0.0",
     "prettier": "^1.2.2",
     "react": "^15.5.4",
     "react-dom": "^15.5.4",
