@@ -1,0 +1,6 @@
+test:
+  pre:
+    - npm run build
+  override:
+    - npm run karma-ci
+    - npm run jasmine-node-ci

@@ -97,7 +97,6 @@ var t= getType(values)
         ]
 
 var t= getType(values)
-console.log(JSON.stringify(t, null, 4))
         expect(t).toEqual([
             {
                 a: {
