@@ -1,0 +1,134 @@
+<html>
+        <head>
+            <title>simple.js - Glasswing</title>
+        </head>
+        <body style="overflow: hidden">
+    <meta charset="utf-8" />    
+        <div id="code-container" style="height: 100%">
+            <style>
+                body {
+                    margin: 0;
+                }
+                .value {
+                    border-bottom: 1px solid red;
+                    cursor: pointer;
+                }
+                .value--no-data {
+                    border-bottom: 1px solid gray;
+                }
+                .monaco-editor-hover {
+                    display: none; /* hide monaco type annotations */
+                }
+                .example-nav-item {
+                    opacity: .5;
+                    border: none;
+                    background: #eee;
+                    cursor: pointer;
+                    width: 25px;
+                    height: 25px;
+                    text-align: center;
+                    background: #555;
+                    color: white;
+                }
+                .example-nav-item:hover {
+                    opacity: 1;
+                    border: none;
+                    background: #777;
+                    outline: none;
+                }
+                .example-nav-item__unique {
+                    opacity: 1;
+                }
+                .example-nav-item__selected, .example-nav-item__selected:hover {
+                    outline: none;
+                    opacity: 1;
+                    background: white;
+                    color: #555;
+                }
+            </style>
+        </div>
+        <div id="overlay"></div>
+        
+        <br><br><br>
+
+<script>
+    window.valueCache = {}
+
+            function launch(){
+                require.config({ paths: { 'vs': monacoVsRoot }});
+                require(['vs/editor/editor.main'], function() {
+                    start()
+                    
+                });
+            }
+                
+
+            </script>
+
+
+        <script>
+            fetch("locations.json")
+            .then(r => r.json())
+            .then(locations => {
+                window.locations = locations
+
+                fetch("code.js")
+                .then(r => r.text())
+                .then(code => {
+                    window.code = code
+
+                    fetch("values.json")
+                    .then(r => r.json())
+                    .then(function(values){
+                        window.valueCache = values
+                        launch()
+                    })
+                })
+            })
+        </script>
+        
+        <script src="../monaco-editor/min/vs/loader.js"></script>
+            <script>
+                window.monacoVsRoot = '../monaco-editor/min/vs'
+            </script>
+            <script src="../bundle.js"></script>
+            
+        
+
+        
+
+
+        
+
+
+
+        <script>
+            
+            
+        window.scriptId =1;
+        window.isDemo = true
+    
+            
+
+            
+        </script>
+        
+
+           
+    <script>
+        if (!isDemo){ 
+            fetch("/__jscb/getLocations/" + scriptId)
+            .then(r => r.json())
+            .then(locations =>{
+                window.locations = locations
+                fetch("/__jscb/getCode/" + scriptId)
+                .then(r => r.text())
+                .then(code =>{
+                    window.code = code
+                    console.log("has locations")
+                    launch()
+                })
+            })
+        }
+    </script>
+</body></html>
