@@ -403,59 +403,6 @@ function renderInfo(info,scriptId, cb){
 }
 
 
-function renderInfoOldUnused(info){
-    var m = new MagicString(info.code)
-    var errors = []
-    Object.keys(info.locations).forEach(function(id){
-        var loc = info.locations[id]
-        try {
-            if (loc.type === "call") {
-                m.insertLeft(loc.end, "OPENTAGspan data-value-id='" + id + "' style='background: red; color: white;border-radius: 4px;padding: 2;font-size: 12px'CLOSETAG" + 
-                    "RET"
-                + "OPENTAG/spanCLOSETAG")
-            }
-            else {
-                var end = loc.end
-                if (loc.type === "returnStatement") {
-                    end = loc.start + "return".length
-                }
-                m.overwrite(loc.start, end, "OPENTAGspan data-value-id='" + id + "' style='border-bottom: 1px solid red'CLOSETAG" + 
-                    (loc.type === "returnStatement" ? "return" : info.code.slice(loc.start, loc.end) )
-                    
-                + "OPENTAG/spanCLOSETAG")
-            }
-        } catch (err) {
-            errors.push(err)
-        }
-    })
-
-    var res = {}
-    Object.keys(info.values).forEach(function(key){
-        var values = info.values[key]
-        if (values.length === 0) {
-            res[key] = null
-        } else {
-            res[key] = {
-                type: null, // types are out of scope for now
-                examples: values.slice(0, 1)
-            }
-        }
-    })
-
-    return `<html><body>
-    <meta charset="utf-8" /> 
-    <pre>${m.toString().replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/OPENTAG/g, "<").replace(/CLOSETAG/g, ">")}</pre>
-        <div id="overlay"></div>
-        <br><br><br>
-        <div>ERRORS: <br>${errors.join("<br>")}</div>
-        <script>
-            window.values = JSON.parse(decodeURI("${encodeURI(JSON.stringify(res))}"));
-            ${require("fs").readFileSync(pathFromRoot("src/ui/lodash.js")).toString()}
-            ${require("fs").readFileSync(pathFromRoot("src/ui/dist/bundle.js")).toString()}            
-        </script>
-        </body></body>`
-}
-
 
 
 //create node.js http server and listen on port
