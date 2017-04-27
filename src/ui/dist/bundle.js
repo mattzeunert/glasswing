@@ -27048,13 +27048,19 @@ var OverlayContent = function (_Component) {
                         'div',
                         null,
                         examples.map(function (e, i) {
+                            var previousExamples = examples.slice(0, i);
+                            var previousExamplesThatAreSame = previousExamples.filter(function (prevExample) {
+                                return JSON.stringify(prevExample) == JSON.stringify(e);
+                            });
+                            var isUnique = previousExamplesThatAreSame.length === 0;
                             return _react2.default.createElement(
                                 'button',
                                 {
                                     onClick: function onClick() {
                                         return _this3.setState({ exampleIndex: i });
                                     },
-                                    style: { color: _this3.state.exampleIndex === i ? "red" : "" }
+                                    style: { color: _this3.state.exampleIndex === i ? "red" : "" },
+                                    className: "example-nav-item " + (isUnique ? "example-nav-item__unique" : "")
                                 },
                                 i
                             );

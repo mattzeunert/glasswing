@@ -98,12 +98,20 @@ class OverlayContent extends Component {
             var exampleNav = null;
             if (examples && examples.length > 1) {
                 exampleNav = <div>
-                    {examples.map((e, i) => <button
-                        onClick={() => this.setState({exampleIndex: i})}
-                        style={{color: this.state.exampleIndex === i ? "red" :""}}
-                        >
-                        {i}    
-                    </button>)}
+                    {examples.map((e, i) => {
+                        var previousExamples = examples.slice(0, i)
+                        var previousExamplesThatAreSame = previousExamples.filter(function(prevExample){
+                            return JSON.stringify(prevExample) == JSON.stringify(e)
+                        })
+                        var isUnique = previousExamplesThatAreSame.length === 0
+                        return <button
+                            onClick={() => this.setState({exampleIndex: i})}
+                            style={{color: this.state.exampleIndex === i ? "red" :""}}
+                            className={"example-nav-item " + (isUnique ? "example-nav-item__unique" : "")}
+                            >
+                            {i}    
+                        </button>
+                    })}
                 </div>
             }
             return <div style={{fontFamily: "monospace", cursor: "default"}}>
