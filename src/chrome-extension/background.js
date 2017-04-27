@@ -114,8 +114,9 @@ Session.prototype.updateBadge = function(){
         
         session.requestOrder.push(details.url)
 
-        var oReq = new XMLHttpRequest();
-        oReq.addEventListener("load", function(){
+        fetch(details.url, {cache: "no-cache"})
+        .then(r => r.text())
+        .then(responseText => {
             console.log("loaded response for", requestId, details.url)
             fetch("http://localhost:" + port + "/response/" + requestId + "?url=" + encodeURIComponent(details.url), {
                 headers: {
@@ -123,7 +124,7 @@ Session.prototype.updateBadge = function(){
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    response: oReq.responseText,
+                    response: responseText,
                     requestType: details.type, 
                     url: details.url,
                     returnProcessedContent: !session.canLoadInsecureContent
@@ -138,10 +139,7 @@ Session.prototype.updateBadge = function(){
                     tryInject(details.url, t)
                 }
             })
-        });
-        oReq.open("GET", details.url);
-        oReq.send();
-
+        })
         return ret
 
 
