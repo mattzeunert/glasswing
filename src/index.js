@@ -315,6 +315,9 @@ app.use(function(req, res){
                     url: req.body.url
                 })
             } else {
+                if (dataStores[scriptId].code !== response) {
+                    console.warn("It looks like the code for this file changed, you need to restart the server and save to a different location!", req.body.url)
+                }
                 console.log("re-using datastore for url", req.body.url)
             }
             

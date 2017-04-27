@@ -27023,13 +27023,18 @@ var OverlayContent = function (_Component) {
             setState = function setState(valueId) {
                 _this2.setState({
                     exampleIndex: 0,
+                    previewExampleIndex: null,
                     valueId: valueId,
-                    examples: { examples: [] }
+                    examples: { examples: [] },
+                    hasFetchedExamples: false
                 });
                 fetch("/__jscb/getValues/" + scriptId + "/" + valueId).then(function (r) {
                     return r.json();
                 }).then(function (data) {
-                    return _this2.setState({ examples: { examples: data } });
+                    return _this2.setState({
+                        examples: { examples: data },
+                        hasFetchedExamples: true
+                    });
                 });
             };
         }
@@ -27037,6 +27042,10 @@ var OverlayContent = function (_Component) {
         key: 'render',
         value: function render() {
             var _this3 = this;
+
+            if (!this.state.hasFetchedExamples) {
+                return null;
+            }
 
             if (this.state.examples) {
                 var examples = this.state.examples.examples;
@@ -27048,31 +27057,61 @@ var OverlayContent = function (_Component) {
                         'div',
                         null,
                         examples.map(function (e, i) {
+                            var previousExamples = examples.slice(0, i);
+                            var previousExamplesThatAreSame = previousExamples.filter(function (prevExample) {
+                                return JSON.stringify(prevExample) == JSON.stringify(e);
+                            });
+                            var isUnique = previousExamplesThatAreSame.length === 0;
+                            var isSelected = _this3.state.exampleIndex === i;
+                            var className = "example-nav-item ";
+                            if (isUnique) {
+                                className += "example-nav-item__unique ";
+                            }
+                            if (isSelected) {
+                                className += "example-nav-item__selected ";
+                            }
                             return _react2.default.createElement(
                                 'button',
                                 {
                                     onClick: function onClick() {
                                         return _this3.setState({ exampleIndex: i });
                                     },
-                                    style: { color: _this3.state.exampleIndex === i ? "red" : "" }
+                                    className: className,
+                                    onMouseEnter: function onMouseEnter() {
+                                        return _this3.setState({ previewExampleIndex: i });
+                                    },
+                                    onMouseLeave: function onMouseLeave() {
+                                        return _this3.setState({ previewExampleIndex: null });
+                                    }
                                 },
                                 i
                             );
                         })
                     );
                 }
-                return _react2.default.createElement(
-                    'div',
-                    { style: { fontFamily: "monospace", cursor: "default" } },
-                    (examples && examples.length) > 0 ? _react2.default.createElement(
-                        'div',
-                        null,
-                        exampleNav,
-                        _react2.default.createElement(ValueExample, { key: window.openingId, example: examples[this.state.exampleIndex], isRoot: true })
-                    ) : _react2.default.createElement(
+                var exampleView = null;
+                var hasExamples = examples && examples.length > 0;
+                if (hasExamples) {
+                    if (this.state.previewExampleIndex === null) {
+                        exampleView = _react2.default.createElement(ExampleView, { example: examples[this.state.exampleIndex] });
+                    } else {
+                        exampleView = _react2.default.createElement(ExampleView, { example: examples[this.state.previewExampleIndex] });
+                    }
+                } else {
+                    exampleView = _react2.default.createElement(
                         'span',
                         null,
                         'No value captured, this code didn\'t run.'
+                    );
+                }
+                return _react2.default.createElement(
+                    'div',
+                    { style: { fontFamily: "monospace", cursor: "default" } },
+                    exampleNav,
+                    _react2.default.createElement(
+                        'div',
+                        { style: { padding: 4 } },
+                        exampleView
                     )
                 );
             }
@@ -27087,22 +27126,45 @@ var OverlayContent = function (_Component) {
     return OverlayContent;
 }(_react.Component);
 
-var FunctionPreview = function (_Component2) {
-    _inherits(FunctionPreview, _Component2);
+var ExampleView = function (_Component2) {
+    _inherits(ExampleView, _Component2);
+
+    function ExampleView() {
+        _classCallCheck(this, ExampleView);
+
+        return _possibleConstructorReturn(this, (ExampleView.__proto__ || Object.getPrototypeOf(ExampleView)).apply(this, arguments));
+    }
+
+    _createClass(ExampleView, [{
+        key: 'render',
+        value: function render() {
+            return _react2.default.createElement(
+                'div',
+                null,
+                _react2.default.createElement(ValueExample, { key: window.openingId, example: this.props.example, isRoot: true })
+            );
+        }
+    }]);
+
+    return ExampleView;
+}(_react.Component);
+
+var FunctionPreview = function (_Component3) {
+    _inherits(FunctionPreview, _Component3);
 
     function FunctionPreview(props) {
         _classCallCheck(this, FunctionPreview);
 
-        var _this4 = _possibleConstructorReturn(this, (FunctionPreview.__proto__ || Object.getPrototypeOf(FunctionPreview)).call(this, props));
+        var _this5 = _possibleConstructorReturn(this, (FunctionPreview.__proto__ || Object.getPrototypeOf(FunctionPreview)).call(this, props));
 
-        _this4.state = {};
-        return _this4;
+        _this5.state = {};
+        return _this5;
     }
 
     _createClass(FunctionPreview, [{
         key: 'componentDidMount',
         value: function componentDidMount() {
-            var _this5 = this;
+            var _this6 = this;
 
             var value = this.props.value;
             if (!value.scriptId) {
@@ -27111,7 +27173,7 @@ var FunctionPreview = function (_Component2) {
                 fetch("/__jscb/fetchFunctionCode/" + value.scriptId + "/" + value.locationId).then(function (t) {
                     return t.json();
                 }).then(function (json) {
-                    return _this5.setState({
+                    return _this6.setState({
                         text: json.text,
                         url: json.url
                     });
@@ -27121,7 +27183,7 @@ var FunctionPreview = function (_Component2) {
     }, {
         key: 'render',
         value: function render() {
-            var _this6 = this;
+            var _this7 = this;
 
             return _react2.default.createElement(
                 'span',
@@ -27132,7 +27194,7 @@ var FunctionPreview = function (_Component2) {
                     _react2.default.createElement(
                         'button',
                         { onClick: function onClick() {
-                                return window.location = _this6.state.url;
+                                return window.location = _this7.state.url;
                             } },
                         'Go to definition'
                     ),
@@ -27150,8 +27212,8 @@ var FunctionPreview = function (_Component2) {
     return FunctionPreview;
 }(_react.Component);
 
-var Preview = function (_Component3) {
-    _inherits(Preview, _Component3);
+var Preview = function (_Component4) {
+    _inherits(Preview, _Component4);
 
     function Preview() {
         _classCallCheck(this, Preview);
@@ -27278,18 +27340,18 @@ var Preview = function (_Component3) {
     return Preview;
 }(_react.Component);
 
-var ValueExample = function (_Component4) {
-    _inherits(ValueExample, _Component4);
+var ValueExample = function (_Component5) {
+    _inherits(ValueExample, _Component5);
 
     function ValueExample(props) {
         _classCallCheck(this, ValueExample);
 
-        var _this8 = _possibleConstructorReturn(this, (ValueExample.__proto__ || Object.getPrototypeOf(ValueExample)).call(this, props));
+        var _this9 = _possibleConstructorReturn(this, (ValueExample.__proto__ || Object.getPrototypeOf(ValueExample)).call(this, props));
 
-        _this8.state = {
+        _this9.state = {
             expandedPaths: []
         };
-        return _this8;
+        return _this9;
     }
 
     _createClass(ValueExample, [{
@@ -27437,6 +27499,25 @@ document.querySelectorAll("[data-value-id]").forEach(function (el) {
     }
 });
 
+var enteredOverlay = false;
+var shouldHideOverlaySoon = true;
+overlay.addEventListener("mouseenter", function () {
+    enteredOverlay = true;
+    setTimeout(function () {
+        enteredOverlay = false;
+    }, 500);
+    shouldHideOverlaySoon = false;
+});
+overlay.addEventListener("mouseleave", function () {
+    shouldHideOverlaySoon = true;
+    setTimeout(function () {
+        if (shouldHideOverlaySoon) {
+            overlay.style.display = "none";
+        }
+    }, 1000);
+});
+
+var lastEnteredId = null;
 document.body.addEventListener("mouseover", function (e) {
     var el = e.target;
     // console.log(el)
@@ -27447,63 +27528,33 @@ document.body.addEventListener("mouseover", function (e) {
     var valId = el.className.split(" ").filter(function (c) {
         return c.indexOf("value-") !== -1;
     })[0].replace(/[^0-9]/g, "");
-
+    lastEnteredId = valId;
     var overlay = document.getElementById("overlay");
     overlay.style.display = "block";
-    overlay.setAttribute("style", "top: " + (el.getBoundingClientRect().top + 20 + window.scrollY) + "px; left: " + (el.getBoundingClientRect().left + 20) + "px" + ";position: absolute; background: white; padding: 4px; border: 1px solid #ddd;");
+    overlay.setAttribute("style", "top: " + (el.getBoundingClientRect().top + 20 + window.scrollY) + "px; left: " + el.getBoundingClientRect().left + "px" + ";position: absolute; background: white; border: 1px solid #ddd;");
 
     setState(valId);
-
-    // if (vals) {
-    //     setState({examples: vals})
-
-    //     function esc(str){
-    //         if(str===undefined) debugger
-    //         return str.replace(/</g, "&lt;").replace(/>/g, "&gt;")
-    //     }
-    //     // overlay.innerHTML = "<pre>" + esc(JSON.stringify(vals.examples, null, 4))  + "</pre>"
-
-    //     function renderTypes(type, depth){
-    //         if (!type) {
-    //             return "no info..."
-    //         }
-    //         if (!type){debugger}
-    //         if (depth === undefined) {
-    //             depth =0 
-    //         }
-    //         console.log("render", type)
-    //         if (type.length > 1) {
-    //             return "(" + type.map(t => renderTypes([t])).join(" | ") + ")"
-    //         }   if (type.length === 0) {
-    //             return "(No type)"
-    //         }
-    //         else {
-    //             var t = type[0]
-    //             if (typeof t === "object") {
-    //                 var ret = "{\n"
-    //                 ret += Object.keys(t).map(function(key){
-    //                     return new Array(depth + 2).join("  ") + esc(key) + (t[key].optional ? "?" : "") + ":" + renderTypes(t[key].type, depth + 1)
-    //                 }).join(",\n")
-    //                 ret += "\n" + new Array(depth + 1).join("  ") + "}"
-    //                 return ret
-    //             } else {
-    //                 return esc(JSON.stringify(t, null, 4))
-    //             }
-
-    //         }
-
-    //     }
-    // } else {
-    //     overlay.innerText = "No values captured. This code didn't run."
-    // }
 });
 
-document.body.addEventListener("mouseout", function (e) {
+document.body.addEventListener("mouseleave", function (e) {
     var el = e.target;
+    if (el.className.indexOf("value") === -1) {
+        return;
+    }
+    var valId = el.className.split(" ").filter(function (c) {
+        return c.indexOf("value-") !== -1;
+    })[0].replace(/[^0-9]/g, "");
+    if (valId !== lastEnteredId) {
+        return;
+    }
     {/*console.log(el)*/}
     var valId = el.getAttribute("data-value-id");
     var overlay = document.getElementById("overlay");
-    // overlay.style.display = "none"
+    setTimeout(function () {
+        if (!enteredOverlay) {
+            overlay.style.display = "none";
+        }
+    }, 400);
 });
 
 /***/ }),

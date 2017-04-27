@@ -19,6 +19,32 @@
                 .monaco-editor-hover {
                     display: none; /* hide monaco type annotations */
                 }
+                .example-nav-item {
+                    opacity: .5;
+                    border: none;
+                    background: #eee;
+                    cursor: pointer;
+                    width: 25px;
+                    height: 25px;
+                    text-align: center;
+                    background: #555;
+                    color: white;
+                }
+                .example-nav-item:hover {
+                    opacity: 1;
+                    border: none;
+                    background: #777;
+                    outline: none;
+                }
+                .example-nav-item__unique {
+                    opacity: 1;
+                }
+                .example-nav-item__selected, .example-nav-item__selected:hover {
+                    outline: none;
+                    opacity: 1;
+                    background: white;
+                    color: #555;
+                }
             </style>
         </div>
         <div id="overlay"></div>

@@ -81,41 +81,84 @@ class OverlayContent extends Component {
         setState = (valueId) => {
             this.setState({
                 exampleIndex: 0,
+                previewExampleIndex: null,
                 valueId: valueId,
-                examples: {examples: []}
+                examples: {examples: []},
+                hasFetchedExamples: false
             })
             fetch("/__jscb/getValues/" + scriptId + "/" + valueId)
             .then(r=>r.json())
-            .then(data => this.setState({examples: {examples: data}}))
+            .then(data => this.setState({
+                examples: {examples: data},
+                hasFetchedExamples: true
+            }))
         }
     }
     render(){
+        if (!this.state.hasFetchedExamples) {
+            return null
+        }
+
         if (this.state.examples) {
             var examples = this.state.examples.examples
             window.openingId++
 
-
             var exampleNav = null;
             if (examples && examples.length > 1) {
                 exampleNav = <div>
-                    {examples.map((e, i) => <button
-                        onClick={() => this.setState({exampleIndex: i})}
-                        style={{color: this.state.exampleIndex === i ? "red" :""}}
-                        >
-                        {i}    
-                    </button>)}
+                    {examples.map((e, i) => {
+                        var previousExamples = examples.slice(0, i)
+                        var previousExamplesThatAreSame = previousExamples.filter(function(prevExample){
+                            return JSON.stringify(prevExample) == JSON.stringify(e)
+                        })
+                        var isUnique = previousExamplesThatAreSame.length === 0
+                        var isSelected = this.state.exampleIndex === i
+                        var className = "example-nav-item "
+                        if (isUnique) {
+                            className += "example-nav-item__unique "   
+                        }
+                        if (isSelected ){ 
+                            className += "example-nav-item__selected "   
+                        }
+                        return <button
+                            onClick={() => this.setState({exampleIndex: i})}
+                            className={className}
+                            onMouseEnter={() => this.setState({previewExampleIndex: i})}
+                            onMouseLeave={() => this.setState({previewExampleIndex: null})}
+                            >
+                            {i}
+                        </button>
+                    })}
                 </div>
             }
+            var exampleView = null;
+            var hasExamples = examples && examples.length > 0
+            if (hasExamples) {
+                if (this.state.previewExampleIndex === null) {
+                    exampleView = <ExampleView example={examples[this.state.exampleIndex]} />
+                } else {
+                    exampleView = <ExampleView example={examples[this.state.previewExampleIndex]} />
+                }
+            }
+            else {
+                exampleView = <span>No value captured, this code didn't run.</span>
+            }
             return <div style={{fontFamily: "monospace", cursor: "default"}}>
-                { (examples && examples.length) > 0 ? 
-                    <div>
-                        {exampleNav}
-                        <ValueExample key={window.openingId} example={examples[this.state.exampleIndex]} isRoot={true}/>
-                    </div>
-                : <span>No value captured, this code didn't run.</span> }
+                {exampleNav}
+                <div style={{padding: 4}}>
+                    {exampleView}
+                </div>
             </div>
         }
         return <div>no examples </div>
+    }
+}
+
+class ExampleView extends Component {
+    render() {
+        return <div>
+            <ValueExample key={window.openingId} example={this.props.example} isRoot={true}/>
+        </div>
     }
 }
 
@@ -338,6 +381,25 @@ document.querySelectorAll("[data-value-id]").forEach(function(el){
     }
 })
 
+var enteredOverlay = false
+var shouldHideOverlaySoon = true
+overlay.addEventListener("mouseenter", function(){
+    enteredOverlay = true;
+    setTimeout(function(){
+        enteredOverlay = false
+    }, 500)
+    shouldHideOverlaySoon = false
+})
+overlay.addEventListener("mouseleave", function(){
+    shouldHideOverlaySoon = true
+    setTimeout(function(){
+        if (shouldHideOverlaySoon) {
+            overlay.style.display = "none"
+        }
+    }, 1000)
+})
+
+var lastEnteredId = null
 document.body.addEventListener("mouseover", function(e){
     var el = e.target
     // console.log(el)
@@ -346,66 +408,35 @@ document.body.addEventListener("mouseover", function(e){
     }
     
     var valId = el.className.split(" ").filter(c => c.indexOf("value-") !== -1)[0].replace(/[^0-9]/g,"")
-    
+    lastEnteredId = valId
     var overlay = document.getElementById("overlay")
     overlay.style.display = "block"
     overlay.setAttribute("style",
         "top: " + (el.getBoundingClientRect().top + 20 + window.scrollY) +
-        "px; left: " + (el.getBoundingClientRect().left + 20) + "px"
-        + ";position: absolute; background: white; padding: 4px; border: 1px solid #ddd;"
+        "px; left: " + (el.getBoundingClientRect().left) + "px"
+        + ";position: absolute; background: white; border: 1px solid #ddd;"
     )
 
     setState(valId)
 
-    // if (vals) {
-    //     setState({examples: vals})
-
-    //     function esc(str){
-    //         if(str===undefined) debugger
-    //         return str.replace(/</g, "&lt;").replace(/>/g, "&gt;")
-    //     }
-    //     // overlay.innerHTML = "<pre>" + esc(JSON.stringify(vals.examples, null, 4))  + "</pre>"
-
-    //     function renderTypes(type, depth){
-    //         if (!type) {
-    //             return "no info..."
-    //         }
-    //         if (!type){debugger}
-    //         if (depth === undefined) {
-    //             depth =0 
-    //         }
-    //         console.log("render", type)
-    //         if (type.length > 1) {
-    //             return "(" + type.map(t => renderTypes([t])).join(" | ") + ")"
-    //         }   if (type.length === 0) {
-    //             return "(No type)"
-    //         }
-    //         else {
-    //             var t = type[0]
-    //             if (typeof t === "object") {
-    //                 var ret = "{\n"
-    //                 ret += Object.keys(t).map(function(key){
-    //                     return new Array(depth + 2).join("  ") + esc(key) + (t[key].optional ? "?" : "") + ":" + renderTypes(t[key].type, depth + 1)
-    //                 }).join(",\n")
-    //                 ret += "\n" + new Array(depth + 1).join("  ") + "}"
-    //                 return ret
-    //             } else {
-    //                 return esc(JSON.stringify(t, null, 4))
-    //             }
-                
-    //         }
-            
-    //     }
-    // } else {
-    //     overlay.innerText = "No values captured. This code didn't run."
-    // }
-    
 })
 
-document.body.addEventListener("mouseout", function(e){
+document.body.addEventListener("mouseleave", function(e){
     var el = e.target
+    if (el.className.indexOf("value") === -1) {
+        return
+    }
+    var valId = el.className.split(" ").filter(c => c.indexOf("value-") !== -1)[0].replace(/[^0-9]/g,"")
+    if (valId !== lastEnteredId) {
+        return;
+    }
     {/*console.log(el)*/}
     var valId = el.getAttribute("data-value-id")
     var overlay = document.getElementById("overlay")
-    // overlay.style.display = "none"
+    setTimeout(function(){
+        if (!enteredOverlay) {
+            overlay.style.display = "none"
+        }
+    }, 400)
+    
 })
