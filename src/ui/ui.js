@@ -138,7 +138,9 @@ class OverlayContent extends Component {
             }
             return <div style={{fontFamily: "monospace", cursor: "default"}}>
                 {exampleNav}
-                {exampleView}
+                <div style={{padding: 4}}>
+                    {exampleView}
+                </div>
             </div>
         }
         return <div>no examples </div>
@@ -405,7 +407,7 @@ document.body.addEventListener("mouseover", function(e){
     overlay.setAttribute("style",
         "top: " + (el.getBoundingClientRect().top + 20 + window.scrollY) +
         "px; left: " + (el.getBoundingClientRect().left) + "px"
-        + ";position: absolute; background: white; padding: 4px; border: 1px solid #ddd;"
+        + ";position: absolute; background: white; border: 1px solid #ddd;"
     )
 
     setState(valId)
