@@ -38,6 +38,7 @@
     "ends-with": "^0.2.0",
     "escape-html": "^1.0.3",
     "level": "^1.6.0",
+    "lodash": "^4.17.4",
     "mkdirp": "^0.5.1",
     "monaco-editor": "^0.8.3",
     "prettier": "^1.2.2",
