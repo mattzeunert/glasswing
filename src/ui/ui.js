@@ -372,6 +372,25 @@ document.querySelectorAll("[data-value-id]").forEach(function(el){
     }
 })
 
+var enteredOverlay = false
+var shouldHideOverlaySoon = true
+overlay.addEventListener("mouseenter", function(){
+    enteredOverlay = true;
+    setTimeout(function(){
+        enteredOverlay = false
+    }, 500)
+    shouldHideOverlaySoon = false
+})
+overlay.addEventListener("mouseleave", function(){
+    shouldHideOverlaySoon = true
+    setTimeout(function(){
+        if (shouldHideOverlaySoon) {
+            overlay.style.display = "none"
+        }
+    }, 1000)
+})
+
+var lastEnteredId = null
 document.body.addEventListener("mouseover", function(e){
     var el = e.target
     // console.log(el)
@@ -380,66 +399,35 @@ document.body.addEventListener("mouseover", function(e){
     }
     
     var valId = el.className.split(" ").filter(c => c.indexOf("value-") !== -1)[0].replace(/[^0-9]/g,"")
-    
+    lastEnteredId = valId
     var overlay = document.getElementById("overlay")
     overlay.style.display = "block"
     overlay.setAttribute("style",
         "top: " + (el.getBoundingClientRect().top + 20 + window.scrollY) +
-        "px; left: " + (el.getBoundingClientRect().left + 20) + "px"
+        "px; left: " + (el.getBoundingClientRect().left) + "px"
         + ";position: absolute; background: white; padding: 4px; border: 1px solid #ddd;"
     )
 
     setState(valId)
 
-    // if (vals) {
-    //     setState({examples: vals})
-
-    //     function esc(str){
-    //         if(str===undefined) debugger
-    //         return str.replace(/</g, "&lt;").replace(/>/g, "&gt;")
-    //     }
-    //     // overlay.innerHTML = "<pre>" + esc(JSON.stringify(vals.examples, null, 4))  + "</pre>"
-
-    //     function renderTypes(type, depth){
-    //         if (!type) {
-    //             return "no info..."
-    //         }
-    //         if (!type){debugger}
-    //         if (depth === undefined) {
-    //             depth =0 
-    //         }
-    //         console.log("render", type)
-    //         if (type.length > 1) {
-    //             return "(" + type.map(t => renderTypes([t])).join(" | ") + ")"
-    //         }   if (type.length === 0) {
-    //             return "(No type)"
-    //         }
-    //         else {
-    //             var t = type[0]
-    //             if (typeof t === "object") {
-    //                 var ret = "{\n"
-    //                 ret += Object.keys(t).map(function(key){
-    //                     return new Array(depth + 2).join("  ") + esc(key) + (t[key].optional ? "?" : "") + ":" + renderTypes(t[key].type, depth + 1)
-    //                 }).join(",\n")
-    //                 ret += "\n" + new Array(depth + 1).join("  ") + "}"
-    //                 return ret
-    //             } else {
-    //                 return esc(JSON.stringify(t, null, 4))
-    //             }
-                
-    //         }
-            
-    //     }
-    // } else {
-    //     overlay.innerText = "No values captured. This code didn't run."
-    // }
-    
 })
 
-document.body.addEventListener("mouseout", function(e){
+document.body.addEventListener("mouseleave", function(e){
     var el = e.target
+    if (el.className.indexOf("value") === -1) {
+        return
+    }
+    var valId = el.className.split(" ").filter(c => c.indexOf("value-") !== -1)[0].replace(/[^0-9]/g,"")
+    if (valId !== lastEnteredId) {
+        return;
+    }
     {/*console.log(el)*/}
     var valId = el.getAttribute("data-value-id")
     var overlay = document.getElementById("overlay")
-    // overlay.style.display = "none"
+    setTimeout(function(){
+        if (!enteredOverlay) {
+            overlay.style.display = "none"
+        }
+    }, 400)
+    
 })
