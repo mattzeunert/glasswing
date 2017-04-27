@@ -26940,6 +26940,10 @@ window.start = function () {
         readOnly: true
     });
 
+    window.addEventListener("resize", function () {
+        editor.layout();
+    });
+
     var decorations = Object.keys(locations).map(function (key) {
         var location = locations[key].loc;
         if (!location) {
