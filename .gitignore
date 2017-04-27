@@ -1,3 +1,4 @@
 /node_modules
 /data
 /docs/_site
+.sass-cache
