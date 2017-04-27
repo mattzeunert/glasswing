@@ -81,6 +81,7 @@ class OverlayContent extends Component {
         setState = (valueId) => {
             this.setState({
                 exampleIndex: 0,
+                previewExampleIndex: null,
                 valueId: valueId,
                 examples: {examples: []}
             })
@@ -108,22 +109,40 @@ class OverlayContent extends Component {
                             onClick={() => this.setState({exampleIndex: i})}
                             style={{color: this.state.exampleIndex === i ? "red" :""}}
                             className={"example-nav-item " + (isUnique ? "example-nav-item__unique" : "")}
+                            onMouseEnter={() => this.setState({previewExampleIndex: i})}
+                            onMouseLeave={() => this.setState({previewExampleIndex: null})}
                             >
-                            {i}    
+                            {i}
                         </button>
                     })}
                 </div>
             }
+            var exampleView = null;
+            var hasExamples = examples && examples.length > 0
+            if (hasExamples) {
+                if (this.state.previewExampleIndex === null) {
+                    exampleView = <ExampleView example={examples[this.state.exampleIndex]} />
+                } else {
+                    exampleView = <ExampleView example={examples[this.state.previewExampleIndex]} />
+                }
+            }
+            else {
+                exampleView = <span>No value captured, this code didn't run.</span>
+            }
             return <div style={{fontFamily: "monospace", cursor: "default"}}>
-                { (examples && examples.length) > 0 ? 
-                    <div>
-                        {exampleNav}
-                        <ValueExample key={window.openingId} example={examples[this.state.exampleIndex]} isRoot={true}/>
-                    </div>
-                : <span>No value captured, this code didn't run.</span> }
+                {exampleNav}
+                {exampleView}
             </div>
         }
         return <div>no examples </div>
+    }
+}
+
+class ExampleView extends Component {
+    render() {
+        return <div>
+            <ValueExample key={window.openingId} example={this.props.example} isRoot={true}/>
+        </div>
     }
 }
 
