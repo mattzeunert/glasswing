@@ -1,0 +1,9 @@
+machine:
+  post:
+    - npm install npm@3.10.3 -g
+test:
+  pre:
+    - npm run build
+  override:
+    - npm run karma-ci
+    - npm run jasmine-node-ci

@@ -3,10 +3,6 @@ const t = require("babel-types")
 
 
 function Compiler(){
-    console.log(this.compile(`t[o][0].call(l.exports, function(e) {
-                    var n = t[o][1][e];
-                    return s(n ? n : e)
-                }, l, l.exports, e, t, n, r)`, {scriptId: 10}).code)
 
 }
 Compiler.prototype.compile = function(code, options){

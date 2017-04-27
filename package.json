@@ -5,7 +5,11 @@
   "main": "src/index.js",
   "scripts": {
     "jasmine-node": "jasmine-node src --autotest",
-    "karma": "karma start"
+    "jasmine-node-ci": "jasmine-node src",
+    "karma": "karma start",
+    "karma-ci": "karma start --single-run",
+    "build": "webpack",
+    "develop": "webpack --watch"
   },
   "bin": {
     "glasswing": "bin/glasswing.js"
