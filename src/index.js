@@ -235,6 +235,10 @@ app.get("/*", function(req, res){
         res.sendFile(pathFromRoot("src/favicon.png"))
         return
     }
+    if(req.url === "/intro-chrome-extension-icon.png") {
+        res.sendFile(pathFromRoot("src/intro-chrome-extension-icon.png"))
+        return
+    }
 
 
     if (req.url.indexOf("/browse") !== -1) {
