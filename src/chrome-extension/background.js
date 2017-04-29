@@ -16,6 +16,14 @@ chrome.browserAction.onClicked.addListener(onBrowserActionClicked);
 
 var port = 9500
 
+function onBeforeIsInstalledRequest(request, sender){
+    return {
+        redirectUrl: request.url.replace("__gwIsInstalled", "__gwIsInstalledTrue")
+    }
+}
+chrome.webRequest.onBeforeRequest.addListener(onBeforeIsInstalledRequest, {
+    urls: ["*://*/__gwIsInstalled"]
+}, ["blocking"]);
 
 
 chrome.runtime.onMessage.addListener(function(request, sender) {

@@ -32,6 +32,14 @@
         </div>
 
         <script>
+        fetch("/__gwIsInstalled")
+        .then(r => r.json())
+        .then(function(res){
+            console.log("isinstalled", res.installed)
+        })
+        </script>
+
+        <script>
             if (!window.chrome) {
                 document.querySelector("#content").innerHTML= "Please open this page in Chrome."
             }

@@ -182,6 +182,15 @@ app.use(function(req, res){
         return
     }
 
+    if (url === "/__gwIsInstalled") {
+        res.end(JSON.stringify({installed: false}))
+        return
+    }
+    if (url === "/__gwIsInstalledTrue") {
+        res.end(JSON.stringify({installed: true}))
+        return
+    }
+
     if (url.indexOf("/__jscb/getValues") !== -1) {
         var parts = url.replace("/__jscb/getValues/", "").split("/").map(parseFloat)
         var scriptId = parts[0]
