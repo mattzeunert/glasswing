@@ -30,7 +30,6 @@ program
 
 var port = program.port
 
-var app = connect();
 
 var Compiler = require("./Compiler")
 var compiler = new Compiler()
@@ -61,6 +60,8 @@ KeyValueStore.prototype.get = function(key, callback){
 
 var async = require("async")
 
+var express = require('express')
+var app = express()
 
 
 var logger = require("./logger")
@@ -166,7 +167,9 @@ function getAllValues(scriptId, cb){
 }
 
 app.use( bodyParser.json({limit: "300mb"}) );
-app.use(function(req, res){
+
+
+app.get("/*", function(req, res){
     logger.logRequest(req.method, req.url)
     var url = req.url.split("?")[0]
 
@@ -225,6 +228,11 @@ app.use(function(req, res){
         res.end(info.code)
 
 
+        return
+    }
+
+    if(req.url === "/favicon.png") {
+        res.sendFile(pathFromRoot("src/favicon.png"))
         return
     }
 
@@ -532,6 +540,7 @@ function renderInfo(info,scriptId, isDemo, cb){
 
 
 
-//create node.js http server and listen on port
-http.createServer(app).listen(port);
-console.log("Listening on http://localhost:" + port)
+
+app.listen(port, function () {
+    console.log("Glasswing is ready! http://localhost:" + port)
+})
