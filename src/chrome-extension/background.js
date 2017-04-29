@@ -122,7 +122,11 @@ Session.prototype.updateBadge = function(){
         
         session.requestOrder.push(details.url)
 
-        fetch(details.url, {cache: "no-cache"})
+        var hasQueryParam = details.url.indexOf("?") !== -1
+
+        var cacheBustedUrl = details.url + (hasQueryParam ? "&" : "?") + Math.random()
+
+        fetch(cacheBustedUrl)
         .then(r => r.text())
         .then(responseText => {
             console.log("loaded response for", requestId, details.url)
