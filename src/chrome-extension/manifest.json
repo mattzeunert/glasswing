@@ -5,6 +5,9 @@
   "background": {
     "scripts": ["background.js"]
   },
+  "icons": {
+          "128": "icon.png"
+  },
   "browser_action": {
     "name": "Browse code for a website"
   },
