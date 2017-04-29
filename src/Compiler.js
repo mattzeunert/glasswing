@@ -58,17 +58,18 @@ function getPlugin(scriptId, js){
                 },
                 FunctionExpression: handleFn,
                 FunctionDeclaration: handleFn,
-                CallExpression: function(path){
-                    if (path.node.ignore) {return}
-                    path.node.ignore = true
-                    path.replaceWith(makeRecordValueCall(
-                        path.node.callee,
-                        path.node,
-                        null,
-                        "call"
-                    ))
+                // Not sure how to show this in UI yet
+                // CallExpression: function(path){
+                //     if (path.node.ignore) {return}
+                //     path.node.ignore = true
+                //     path.replaceWith(makeRecordValueCall(
+                //         path.node.callee,
+                //         path.node,
+                //         null,
+                //         "call"
+                //     ))
 
-                },
+                // },
                 AssignmentExpression: function(path){
                     var call = makeRecordValueCall(
                         path.node.left,

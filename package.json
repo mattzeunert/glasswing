@@ -10,7 +10,7 @@
     "karma-ci": "karma start --single-run",
     "build": "webpack",
     "develop": "webpack --watch",
-    "nodemon": "nodemon --ignore docs ./bin/glasswing.js --save data --verbose",
+    "nodemon": "nodemon --ignore docs --ignore data ./bin/glasswing.js --save data --verbose",
     "jekyll": "jekyll server --watch --source ./docs --destination ./docs/_site"
   },
   "bin": {

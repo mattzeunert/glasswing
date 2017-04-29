@@ -82,6 +82,7 @@ function DataStore(options){
     this.code = options.code
 }
 DataStore.prototype.reportValue = function(data, callback){
+    this.locations[data.valueId].hasValue = true
     this.getValues(data.valueId, (values) => {
         values.push(data.value)
         this.values.put(data.valueId.toString(), JSON.stringify(values), callback)
@@ -325,10 +326,16 @@ app.use(function(req, res){
                 if (store === undefined) {
                     content = "No value store found"
                 } else {
-                    var values = Object.keys(store.values).length
-                    var locations = Object.keys(store.locations).length
+                    var locs = Object.keys(store.locations).filter(function(valueId){
+                        type = store.locations[valueId].type
+                        return type !== "functionLocation"
+                    })
+                    var locations = locs.length
+                    var locationsWithValues = locs.filter(function(valueId){
+                        return store.locations[valueId].hasValue
+                    }).length
                     // rough percentage b/c funcitonlocations are also locations
-                    var roughPercentage = Math.round(values / locations * 100 * 10) /10
+                    var roughPercentage = Math.round(locationsWithValues / locations * 100 * 10) /10
                     content = `~${roughPercentage}%`
                 }
                 
