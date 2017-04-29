@@ -458,9 +458,9 @@ document.body.addEventListener("mouseover", function(e){
     var overlay = document.getElementById("overlay")
     overlay.style.display = "block"
     overlay.setAttribute("style",
-        "top: " + (el.getBoundingClientRect().top + window.scrollY) +
+        "top: " + (el.getBoundingClientRect().top + window.scrollY + 12) +
         "px; left: " + (el.getBoundingClientRect().left) + "px"
-        + ";position: absolute;padding-top: 20px"
+        + ";position: absolute;padding-top: 8px;"
     )
 
     setState(valId)
