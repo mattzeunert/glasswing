@@ -3,9 +3,9 @@
 Glasswing lets you browse a website's code while seeing the actual runtime values
 of variables and function parameters.
 
-TODO: gif
+![](https://cloud.githubusercontent.com/assets/1303660/25556695/b0ac7b7e-2d33-11e7-9a97-048dc7bdea06.gif)
 
-TODO: You can try some examples on the website
+You can try some examples on the [website](http://www.glasswingjs.com/).
 
 ## Installation
 
