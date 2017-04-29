@@ -1,11 +1,10 @@
-// {{REPLACE_WITH_CONFIG}}
-
-
 if (!window.__jscb) {
     inittt()
 }
 
 function inittt() {
+    // {{REPLACE_WITH_CONFIG}}
+
     var recordedValueBuffer = []
     var numberOfValuesCollectedByScriptIdValueId = {}
     var __jscb = {
