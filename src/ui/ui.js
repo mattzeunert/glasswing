@@ -206,6 +206,59 @@ class FunctionPreview extends Component {
     }
 }
 
+class StringPreview extends Component {
+    constructor(props){
+        super(props)
+        this.state = {
+            isExpanded: false
+        }
+    }
+    render(){
+        var val = this.props.value
+        var PREVIEW_STRING_LENGTH = 50
+        var previewIsTruncated = val.text.length > PREVIEW_STRING_LENGTH
+        var toggleButton = null
+        var preview = null
+       
+        var stringView = null
+        if (!this.state.isExpanded) {
+            var v = val.text.slice(0, PREVIEW_STRING_LENGTH).replace(/\n/g, "\\n")
+            if (previewIsTruncated) {
+                v += "..."
+            }
+            stringView = <span style={{display: "inline", color: "red"}}>"{v}"</span>
+        } else {
+            var fullText = val.text
+            var isTruncated = val.length > val.text.length
+            if (isTruncated) {
+                fullText += "..."
+            }
+            stringView = <span style={{display: "inline-block", maxWidth: "80vw", overflow: "auto"}}>
+                <pre style={{
+                    display: "inline",
+                    color: "red",
+                    background: "white"
+                }}>"{fullText}"</pre>
+            </span>
+        }
+
+        if (previewIsTruncated) {
+            toggleButton = <button
+                className="toggle-value-detail-button"
+                onClick={() => this.setState({isExpanded: !this.state.isExpanded})}>
+                {this.state.isExpanded ? "-" : "+"}
+            </button>
+        } else {
+            return stringView
+        }
+
+        return <div style={{overflow: "hidden"}}>
+            <div style={{width: 30, float: "left"}}>{toggleButton}</div>
+            <div style={{width: "calc(100% - 30px", float: "left"}}>{stringView}</div>
+        </div>
+    }
+}
+
 class Preview extends Component {
     render(){
         var val = this.props.value
@@ -225,12 +278,7 @@ class Preview extends Component {
             return <span style={{color: "red"}}>{val.value}</span>
         }
         if (val.type === "string") {
-            var PREVIEW_STRING_LENGTH = 30
-            var v = val.text.slice(0, PREVIEW_STRING_LENGTH).replace(/\n/g, "\\n")
-            if (val.text.length > PREVIEW_STRING_LENGTH) {
-                v += "..."
-            }
-            return <span style={{color: "red"}}>"{v}"</span>
+            return <StringPreview value={val} />
         }
         if (val.type === "object") {
             return <span>
@@ -251,19 +299,6 @@ class Preview extends Component {
         }
         if (val.type === "functionDetail") {
             return <FunctionPreview value={val.fn} />
-        }
-        if (val.type === "stringDetail") {
-            var fullText = val.str.text
-            if (val.str.length > val.str.text.length) {
-                fullText += "..."
-            }
-            return <pre style={{
-                background: "#f8f8f8",
-                color: "red",
-                padding: 10,
-                maxWidth: "90vw",
-                overflow: "auto"
-            }}>{fullText}</pre>
         }
         if (val.type === "jQuery Object") {
             return <span>
@@ -310,8 +345,7 @@ class ValueExample extends Component {
                 var canExpand = (val.type === "object" || val.keyCount > 0) ||
                     (val.type === "array" && val.itemCount > 0) || 
                     (val.type === "jQuery Object" && val.elementCount > 0) ||
-                    (val.type === "function") ||
-                    (val.type === "string")
+                    (val.type === "function")
                 console.log("val.type", val.type)
                 if (canExpand) {
                     expand = <span style={{
@@ -384,14 +418,6 @@ class ValueExample extends Component {
                     })
                 }
             }
-            if (e && e.type === "string") {
-                if (depth === 0 || isExpanded(path)) {
-                    each("fullText", {
-                        type: "stringDetail",
-                        str: e
-                    })
-                }
-            }
             
             
             depth--;
@@ -429,14 +455,16 @@ document.querySelectorAll("[data-value-id]").forEach(function(el){
 
 var enteredOverlay = false
 var shouldHideOverlaySoon = true
-overlay.addEventListener("mouseenter", function(){
+overlay.addEventListener("mouseenter", function(e){
+    console.log("mouseenter", e.target)
     enteredOverlay = true;
     setTimeout(function(){
         enteredOverlay = false
     }, 500)
     shouldHideOverlaySoon = false
 })
-overlay.addEventListener("mouseleave", function(){
+overlay.addEventListener("mouseleave", function(e){
+    console.log("mouseleave", e.target)
     shouldHideOverlaySoon = true
     setTimeout(function(){
         if (shouldHideOverlaySoon) {
@@ -447,13 +475,16 @@ overlay.addEventListener("mouseleave", function(){
 
 var lastEnteredId = null
 document.body.addEventListener("mouseover", function(e){
+    
     var el = e.target
     // console.log(el)
-    if (el.className.indexOf("value") === -1) {
+    var match = el.className.match(/value-([0-9]+)/)
+    if (match === null) {
         return
     }
+    console.log("mouseover", e.target)
     
-    var valId = el.className.split(" ").filter(c => c.indexOf("value-") !== -1)[0].replace(/[^0-9]/g,"")
+    var valId = parseFloat(match[1])
     lastEnteredId = valId
     var overlay = document.getElementById("overlay")
     overlay.style.display = "block"
@@ -468,6 +499,7 @@ document.body.addEventListener("mouseover", function(e){
 })
 
 document.body.addEventListener("mouseleave", function(e){
+    console.log("mouseleave2", e.target)
     var el = e.target
     if (el.className.indexOf("value") === -1) {
         return

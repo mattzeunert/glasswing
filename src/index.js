@@ -308,7 +308,6 @@ app.use(function(req, res){
         var pre = fs.readFileSync(pathFromRoot("src/browser.js")).toString()
             .replace("// {{REPLACE_WITH_CONFIG}}", configFile)
             .replace("{{port}}", port) + "\n\n"
-        console.log(pre)
         response = pre + response
 
         if (!req.body.returnProcessedContent) {
