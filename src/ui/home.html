@@ -21,29 +21,89 @@
             .file-links tr:nth-child(even) td {
                 background: #f7f7f7;
             }
+            .setup-steps {
+                position: relative;
+            }
+            .setup-steps__check-mark,
+            .setup-steps__x-mark {
+                position: absolute;
+                left: 0;
+            }
+            .setup-steps__check-mark {
+                color: green;
+            }
+            .setup-steps__x-mark {
+                color: red;
+            }
         </style>
         <div id="content">
 
-            <a href="https://chrome.google.com/webstore/detail/glasswing/iekajjdehjleoneeigjaefcfelojimfl">Chrome extension</a> <br><br>
+            
+            <b>Setup</b>
+            <div>
+                <ol class="setup-steps">
+                    <li>
+                        <span class="setup-steps__check-mark">&#10004;</span>
+                        Glasswing server started
+                    </li>
+                    <li class="js-install-chrome-extension">
+                        <span class="setup-steps__check-mark" style="display: none">&#10004;</span>
+                        <span class="setup-steps__x-mark">&#10008;</span>
+                        Glasswing <a href="https://chrome.google.com/webstore/detail/glasswing/iekajjdehjleoneeigjaefcfelojimfl">Chrome extension</a> installed
+                    </li>
+                    <li class="js-collect-data">
+                        <span class="setup-steps__check-mark" style="display: none">&#10004;</span>
+                        <span class="setup-steps__x-mark">&#10008;</span>
+                        Runtime data collected
+                    </li>
+                </ol>
+            </div>
+
+            <h3 style="font-weight: normal">Browse these JS files: </h3>
+            {{fileLinks}}
+            </div>
 
 
-        <h3 style="font-weight: normal">Browse these JS files: </h3>
-        {{fileLinks}}
-        </div>
+            <script>
+                var setupStage = "chrome-extension"
+                if (hasRuntimeData){
+                    installChromeExtensionCompleted()
+                    collectDataCompleted()
+                } else {
+                    checkIfChromeExtensionIsInstalled(function(isInstalled){
+                        if (isInstalled) {
+                            installChromeExtensionCompleted()
+                        }
+                    })
+                }
+                function checkIfChromeExtensionIsInstalled(cb){
+                    fetch("/__gwChromeExtensionIsInstalled")
+                    .then(r => r.json())
+                    .then(function(res){
+                        console.log("isinstalled", res.installed)
+                        cb(res.installed)
+                    })
+                }
+                function installChromeExtensionCompleted(){
+                    setupStage = "collect-data"
+                    markSetupStepCompleted(document.querySelector(".js-install-chrome-extension"))
+                }
+                function collectDataCompleted(){
+                    setupStage = "complete"
+                    markSetupStepCompleted(document.querySelector(".js-collect-data"))
+                }
+                function markSetupStepCompleted(el){
+                    el.querySelector(".setup-steps__x-mark").style.display = "none"
+                    el.querySelector(".setup-steps__check-mark").style.display = "inline"
+                }
 
-        <script>
-        fetch("/__gwIsInstalled")
-        .then(r => r.json())
-        .then(function(res){
-            console.log("isinstalled", res.installed)
-        })
-        </script>
+            </script>
 
-        <script>
-            if (!window.chrome) {
-                document.querySelector("#content").innerHTML= "Please open this page in Chrome."
-            }
-        </script>
+            <script>
+                if (!window.chrome) {
+                    document.querySelector("#content").innerHTML= "Please open this page in Chrome."
+                }
+            </script>
         </div>
     </body>
 </html>

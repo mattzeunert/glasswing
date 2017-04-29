@@ -18,11 +18,11 @@ var port = 9500
 
 function onBeforeIsInstalledRequest(request, sender){
     return {
-        redirectUrl: request.url.replace("__gwIsInstalled", "__gwIsInstalledTrue")
+        redirectUrl: request.url.replace("__gwChromeExtensionIsInstalled", "__gwChromeExtensionIsInstalledTrue")
     }
 }
 chrome.webRequest.onBeforeRequest.addListener(onBeforeIsInstalledRequest, {
-    urls: ["*://*/__gwIsInstalled"]
+    urls: ["*://*/__gwChromeExtensionIsInstalled"]
 }, ["blocking"]);
 
 

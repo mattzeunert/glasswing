@@ -182,11 +182,15 @@ app.use(function(req, res){
         return
     }
 
-    if (url === "/__gwIsInstalled") {
+    /*
+        We use this URL to check if the Chrome extension is installed.
+        If it is installed it will redirect to __gwChromeExtensionIsInstalledTrue
+    */
+    if (url === "/__gwChromeExtensionIsInstalled") {
         res.end(JSON.stringify({installed: false}))
         return
     }
-    if (url === "/__gwIsInstalledTrue") {
+    if (url === "/__gwChromeExtensionIsInstalledTrue") {
         res.end(JSON.stringify({installed: true}))
         return
     }
@@ -360,11 +364,12 @@ app.use(function(req, res){
                     </td>
                 `
             }).join("")
-            fileLinks = "<table class=\"file-links\">"  +
+            fileLinks = "<script>var hasRuntimeData = true</script>" + 
+                "<table class=\"file-links\">"  +
                 `<thead><th>File</th><th style="min-width: 150px">Locations with values</th></thead>`
                 + fileLinks + "</table>"
         } else {
-            fileLinks = "<div>No data collected. Load a website and then click the Glassdoor Chrome extension button in the top right of your browser.</div>"
+            fileLinks = "<script>var hasRuntimeData = false</script><div>No data collected. Load a website and then click the Glassdoor Chrome extension button in the top right of your browser.</div>"
         }
         
         res.end(html.replace("{{fileLinks}}", fileLinks))
