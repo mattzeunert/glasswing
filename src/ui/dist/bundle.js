@@ -26960,21 +26960,22 @@ window.start = function () {
         if (type === "functionLocation") {
             return;
         }
-        console.log(type, start, end);
-        if (type === "call") {
-            console.log("TODO: INSERT STH WITH RETVAL instead...");
+        // if (type === "call"  ) {
+        //     console.log("TODO: INSERT STH WITH RETVAL instead...")
 
-            return;
-        }
+        //     return
+        // }
 
         start.column++;
         end.column++;
+
+        var hasExamples = locations[key].hasValue;
 
         return {
             range: new monaco.Range(start.line, start.column, end.line, end.column),
             options: {
                 isWholeLine: false,
-                inlineClassName: "value value-" + key // + " " + ((values[key] && values[key].examples && values[key].examples.length) ? "" : "value--no-data")
+                inlineClassName: "value value-" + key + " " + (hasExamples ? "" : "value--no-data")
             }
         };
 
