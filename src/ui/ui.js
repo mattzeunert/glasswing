@@ -83,7 +83,10 @@ function getValues(scriptId, valueId, cb){
     } else {
         fetch("/__jscb/getValues/" + scriptId + "/" + valueId)
         .then(r=>r.json())
-        .then(cb)
+        .then(function(values){
+            window.valueCache[valueId] = values;
+            cb(values)
+        })
     }
 }
 
