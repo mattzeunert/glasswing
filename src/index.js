@@ -290,7 +290,10 @@ app.use(function(req, res){
             response = compiled.code
         }
         
-        var pre = fs.readFileSync(pathFromRoot("src/browser.js")).toString().replace("{{port}}", port) + "\n\n"
+        var configFile = fs.readFileSync(pathFromRoot("src/browser.js")).toString()
+        var pre = fs.readFileSync(pathFromRoot("src/config.js")).toString()
+            .replace("{{REPLACE_WITH_CONFIG}}", configFile)
+            .replace("{{port}}", port) + "\n\n"
         response = pre + response
 
         if (!req.body.returnProcessedContent) {

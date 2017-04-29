@@ -26933,6 +26933,8 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
+var config = __webpack_require__(194);
+
 window.start = function () {
     window.editor = monaco.editor.create(document.getElementById("code-container"), {
         value: window.code,
@@ -27263,6 +27265,13 @@ var Preview = function (_Component4) {
                     'Too deep, no data'
                 );
             }
+            if (val.type === "UI Message") {
+                return _react2.default.createElement(
+                    'span',
+                    null,
+                    val.text
+                );
+            }
             if (val.type === "Regular Expression") {
                 return _react2.default.createElement(
                     'span',
@@ -27446,6 +27455,13 @@ var ValueExample = function (_Component5) {
                         Object.keys(e.data).forEach(function (key) {
                             each(key, e.data[key]);
                         });
+                        var uncollectedValues = e.keyCount - config.MAX_OBJECT_PROPERTY_VALUES_TO_COLLECT;
+                        if (uncollectedValues > 0) {
+                            each("...", {
+                                type: "UI Message",
+                                text: "(" + uncollectedValues + " value(s) not collected)"
+                            });
+                        }
                     }
                 }
                 if (e && e.type === "array") {
@@ -27453,6 +27469,13 @@ var ValueExample = function (_Component5) {
                         e.items.forEach(function (item, key) {
                             each(key, item);
                         });
+                        var uncollectedValues = e.itemCount - config.MAX_ARRAY_VALUES_TO_COLLECT;
+                        if (uncollectedValues > 0) {
+                            each("...", {
+                                type: "UI Message",
+                                text: "(" + uncollectedValues + " value(s) not collected)"
+                            });
+                        }
                     }
                 }
                 if (e && e.type === "jQuery Object") {
@@ -40692,6 +40715,18 @@ module.exports = function(module) {
 	return module;
 };
 
+
+/***/ }),
+/* 194 */
+/***/ (function(module, exports, __webpack_require__) {
+
+const config = {
+    MAX_ARRAY_VALUES_TO_COLLECT: 5,
+    MAX_OBJECT_PROPERTY_VALUES_TO_COLLECT: 5
+}
+if(true){
+    module.exports = config
+}
 
 /***/ })
 /******/ ]);

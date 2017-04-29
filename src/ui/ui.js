@@ -1,6 +1,7 @@
 import React, {Component} from 'react'
 import {render} from 'react-dom'
 import _ from "lodash"
+var config = require("../config") 
 
 window.start = function(){
     window.editor = monaco.editor.create(document.getElementById("code-container"), {
@@ -217,6 +218,9 @@ class Preview extends Component {
         if (val.type === "Too Deep") {
             return <span>Too deep, no data</span>
         }
+        if (val.type === "UI Message") {
+            return <span>{val.text}</span>
+        }
         if (val.type === "Regular Expression") {
             return <span style={{color: "red"}}>{val.value}</span>
         }
@@ -331,6 +335,13 @@ class ValueExample extends Component {
                     Object.keys(e.data).forEach(function(key){
                         each(key, e.data[key])
                     })
+                    var uncollectedValues = e.keyCount - config.MAX_OBJECT_PROPERTY_VALUES_TO_COLLECT
+                    if (uncollectedValues > 0) {
+                        each("...", {
+                            type: "UI Message",
+                            text: "(" + uncollectedValues + " value(s) not collected)"
+                        })
+                    }
                 }
             }
             if (e && e.type === "array") {
@@ -338,6 +349,13 @@ class ValueExample extends Component {
                     e.items.forEach(function(item, key){
                         each(key, item)
                     })
+                    var uncollectedValues = e.itemCount - config.MAX_ARRAY_VALUES_TO_COLLECT
+                    if (uncollectedValues > 0) {
+                        each("...", {
+                            type: "UI Message",
+                            text: "(" + uncollectedValues + " value(s) not collected)"
+                        })
+                    }
                 }
             }
             if (e && e.type === "jQuery Object") {

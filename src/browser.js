@@ -1,3 +1,4 @@
+// {{REPLACE_WITH_CONFIG}}
 
 
 if (!window.__jscb) {
@@ -98,7 +99,7 @@ function inittt() {
                 return {
                     type: "array",
                     itemCount: value.length,
-                    items: value.slice(0, 5).map(v => serialize(v))
+                    items: value.slice(0, config.MAX_ARRAY_VALUES_TO_COLLECT).map(v => serialize(v))
                 }
             } else if (value && value.jquery && value.length && value.on) {
                 var elements = []
@@ -118,7 +119,7 @@ function inittt() {
             } else if (typeof value === "object") {
                 var data = {}
                 var keys = Object.keys(value)
-                keys.slice(0, 5).forEach(function(key){
+                keys.slice(0, config.MAX_OBJECT_PROPERTY_VALUES_TO_COLLECT).forEach(function(key){
                     data[key] = serialize(value[key])
                 })
                 return {
