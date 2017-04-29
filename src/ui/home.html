@@ -59,10 +59,43 @@
                 </ol>
             </div>
 
-            <h3 style="font-weight: normal">Browse these JS files: </h3>
-            {{fileLinks}}
+            <div class="file-list" style="display: none">
+                <h3 style="font-weight: normal">Browse these JS files: </h3>
+                {{fileLinks}}
+                </div>
             </div>
 
+            <div class="setup-install-chrome-extension alert alert-info" style="display: none">
+                <p>
+                    To collect runtime data on a page you need to install the Glasswing Chrome extension.
+                </p>
+                <p>
+                    <a  style="font-weight: bold;"
+                        href="https://chrome.google.com/webstore/detail/glasswing/iekajjdehjleoneeigjaefcfelojimfl">
+                        &raquo; Install Glasswing Chrome extension
+                    </a>
+                <p>
+                </p>
+                    Refresh this page after installing the Chrome extension.
+                </p>
+            </div>
+
+            <div class="setup-collect-runtime-data alert alert-info" style="display: none">
+                <p>
+                    Almost done! 
+                </p>
+                <ol style="margin-top: 10px;">
+                    <li>Navigate to the page you want to analyze</li>
+                    <li>Click the Glasswing icon in the top right of the browser. This will reload the page you're inspecting.</li>
+                    <li>Refresh this page to see the annotated source code</li>    
+                </ol>
+                <p>
+                    Just trying this out? Try generating annotations for
+                    <a href="http://todomvc.com/examples/backbone/" target="_blank">
+                        Backbone TodoMVC
+                    </a>.
+                <p>
+            </div>
 
             <script>
                 var setupStage = "chrome-extension"
@@ -73,6 +106,8 @@
                     checkIfChromeExtensionIsInstalled(function(isInstalled){
                         if (isInstalled) {
                             installChromeExtensionCompleted()
+                        } else {
+                            showInstallChromeExtensionInfo()
                         }
                     })
                 }
@@ -84,13 +119,22 @@
                         cb(res.installed)
                     })
                 }
+                function showInstallChromeExtensionInfo(){
+                    document.querySelector(".setup-install-chrome-extension").style.display = "block"
+                }
+                function showCollectRuntimeDataInfo(){
+                    document.querySelector(".setup-collect-runtime-data").style.display = "block"
+                }
                 function installChromeExtensionCompleted(){
                     setupStage = "collect-data"
                     markSetupStepCompleted(document.querySelector(".js-install-chrome-extension"))
+                    showCollectRuntimeDataInfo()
                 }
                 function collectDataCompleted(){
                     setupStage = "complete"
                     markSetupStepCompleted(document.querySelector(".js-collect-data"))
+                    document.querySelector(".file-list").style.display = "block"
+                    document.querySelector(".setup-collect-runtime-data").style.display = "none"
                 }
                 function markSetupStepCompleted(el){
                     el.querySelector(".setup-steps__x-mark").style.display = "none"
