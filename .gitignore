@@ -2,3 +2,4 @@
 /data
 /docs/_site
 .sass-cache
+src/ui/dist/bundle.js
