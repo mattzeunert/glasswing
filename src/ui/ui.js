@@ -1,7 +1,7 @@
 import React, {Component} from 'react'
 import {render} from 'react-dom'
 import _ from "lodash"
-var config = require("../config") 
+// var config = require("../config")  // don't need it for now
 
 window.start = function(){
     window.editor = monaco.editor.create(document.getElementById("code-container"), {
@@ -225,7 +225,12 @@ class Preview extends Component {
             return <span style={{color: "red"}}>{val.value}</span>
         }
         if (val.type === "string") {
-            return <span style={{color: "red"}}>"{val.text.slice(0, 30).replace(/\n/g, "\\n")}"</span>
+            var PREVIEW_STRING_LENGTH = 30
+            var v = val.text.slice(0, PREVIEW_STRING_LENGTH).replace(/\n/g, "\\n")
+            if (val.text.length > PREVIEW_STRING_LENGTH) {
+                v += "..."
+            }
+            return <span style={{color: "red"}}>"{v}"</span>
         }
         if (val.type === "object") {
             return <span>
@@ -248,11 +253,17 @@ class Preview extends Component {
             return <FunctionPreview value={val.fn} />
         }
         if (val.type === "stringDetail") {
+            var fullText = val.str.text
+            if (val.str.length > val.str.text.length) {
+                fullText += "..."
+            }
             return <pre style={{
                 background: "#f8f8f8",
                 color: "red",
-                padding: 10
-            }}>{val.str.text}</pre>
+                padding: 10,
+                maxWidth: "90vw",
+                overflow: "auto"
+            }}>{fullText}</pre>
         }
         if (val.type === "jQuery Object") {
             return <span>
@@ -335,7 +346,7 @@ class ValueExample extends Component {
                     Object.keys(e.data).forEach(function(key){
                         each(key, e.data[key])
                     })
-                    var uncollectedValues = e.keyCount - config.MAX_OBJECT_PROPERTY_VALUES_TO_COLLECT
+                    var uncollectedValues = e.keyCount - Object.keys(e.data).length
                     if (uncollectedValues > 0) {
                         each("...", {
                             type: "UI Message",
@@ -349,7 +360,7 @@ class ValueExample extends Component {
                     e.items.forEach(function(item, key){
                         each(key, item)
                     })
-                    var uncollectedValues = e.itemCount - config.MAX_ARRAY_VALUES_TO_COLLECT
+                    var uncollectedValues = e.itemCount - e.items.length
                     if (uncollectedValues > 0) {
                         each("...", {
                             type: "UI Message",

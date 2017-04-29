@@ -56,7 +56,7 @@ function inittt() {
                     type: "null"
                 }   
             } else if (typeof value === "string") {
-                var maxChar = depth < 2 ? 1000 : 100
+                var maxChar = depth < 2 ? config.MAX_STRING_LENGTH_SHALLOW : config.MAX_STRING_LENGTH_DEEP
                 return {
                     type: "string",
                     length: value.length,
