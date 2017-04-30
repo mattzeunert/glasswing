@@ -168,6 +168,108 @@ function getAllValues(scriptId, cb){
 
 app.use( bodyParser.json({limit: "300mb"}) );
 
+app.post("/*", function(req, res){
+    var url = req.url.split("?")[0]
+    if (url.indexOf("/response") !== -1) {
+        var id = url.split("/")[2]
+
+        var response = req.body.response
+        if (endsWith(req.body.url, ".js") || req.body.requestType === "script") {
+            var scriptId = urlToScriptId[req.body.url]
+            if (!scriptId){
+                scriptId = scriptIdCounter
+                scriptIdCounter++
+                urlToScriptId[req.body.url] = scriptId
+            }
+            
+            logger.logPerfStart("Prettify " + req.body.url)
+            response = prettifyJS(response)
+            logger.logPerfEnd("Prettify " + req.body.url)
+
+            logger.logPerfStart("Compile " + req.body.url)
+            var compiled = compiler.compile(response, {
+                scriptId
+            })
+            logger.logPerfEnd("Compile " + req.body.url)
+
+            if (!dataStores[scriptId]) {
+                dataStores[scriptId] = new DataStore({
+                    code: response,
+                    locations: compiled.locations,
+                    url: req.body.url
+                })
+            } else {
+                if (dataStores[scriptId].code !== response) {
+                    console.warn("It looks like the code for this file changed, you need to restart the server and save to a different location!", req.body.url)
+                }
+                console.log("re-using datastore for url", req.body.url)
+            }
+            
+
+            response = compiled.code
+        }
+        
+
+        var configFile = fs.readFileSync(pathFromRoot("src/config.js")).toString()
+        var pre = fs.readFileSync(pathFromRoot("src/browser.js")).toString()
+            .replace("// {{REPLACE_WITH_CONFIG}}", configFile)
+            .replace("{{port}}", port) + "\n\n"
+        response = pre + response
+
+        if (!req.body.returnProcessedContent) {
+            var interval = setInterval(function(){
+                if (resById[id]) {
+                    
+                    resById[id].end(pre + response)
+                    clearInterval(interval)
+                } else {
+                    
+                }
+                
+            }, 100)
+            res.end("OK")
+        } else {
+            res.end(response)
+        }
+        
+        
+        return
+    }
+    if (url.indexOf("__jscb/reportValues") !== -1) {
+        res.setHeader("Access-Control-Allow-Origin", "*")
+        res.setHeader("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
+        if (!req.body.length) {
+            res.end()
+            return
+        }
+        logger.logReceivedValues(req.body)
+
+        logger.logPerfStart("Save " + req.body.length + " values")
+        async.eachSeries(req.body, function iteratee(data, callback) {
+            var dataStore = getDataStore(data.scriptId)
+            dataStore.reportValue(data, callback) 
+        }, function(){
+            logger.logPerfEnd("Save " + req.body.length + " values")
+            if (saveTo) {
+                var data = {
+                    stores: _.mapValues(dataStores, s => s.serialize()),
+                    scriptIdCounter: scriptIdCounter,
+                    urlToScriptId: urlToScriptId
+                }
+
+                var stringifiedData = JSON.stringify(data, null, 4)
+                var mb = Math.round(stringifiedData.length / 1024 / 1024)
+                logger.debug("Saving data to " + saveTo + ": " + mb + "MB")
+                fs.writeFileSync(saveTo, stringifiedData)
+            }
+            
+            
+            res.end('{"status": "success"}')
+        });
+
+        
+    }
+})
 
 app.get("/*", function(req, res){
     logger.logRequest(req.method, req.url)
@@ -276,71 +378,7 @@ app.get("/*", function(req, res){
         resById[id] = res
         return
     }
-    if (url.indexOf("/response") !== -1) {
-        var id = url.split("/")[2]
-
-        var response = req.body.response
-        if (endsWith(req.body.url, ".js") || req.body.requestType === "script") {
-            var scriptId = urlToScriptId[req.body.url]
-            if (!scriptId){
-                scriptId = scriptIdCounter
-                scriptIdCounter++
-                urlToScriptId[req.body.url] = scriptId
-            }
-            
-            logger.logPerfStart("Prettify " + req.body.url)
-            response = prettifyJS(response)
-            logger.logPerfEnd("Prettify " + req.body.url)
-
-            logger.logPerfStart("Compile " + req.body.url)
-            var compiled = compiler.compile(response, {
-                scriptId
-            })
-            logger.logPerfEnd("Compile " + req.body.url)
-
-            if (!dataStores[scriptId]) {
-                dataStores[scriptId] = new DataStore({
-                    code: response,
-                    locations: compiled.locations,
-                    url: req.body.url
-                })
-            } else {
-                if (dataStores[scriptId].code !== response) {
-                    console.warn("It looks like the code for this file changed, you need to restart the server and save to a different location!", req.body.url)
-                }
-                console.log("re-using datastore for url", req.body.url)
-            }
-            
-
-            response = compiled.code
-        }
-        
-
-        var configFile = fs.readFileSync(pathFromRoot("src/config.js")).toString()
-        var pre = fs.readFileSync(pathFromRoot("src/browser.js")).toString()
-            .replace("// {{REPLACE_WITH_CONFIG}}", configFile)
-            .replace("{{port}}", port) + "\n\n"
-        response = pre + response
-
-        if (!req.body.returnProcessedContent) {
-            var interval = setInterval(function(){
-                if (resById[id]) {
-                    
-                    resById[id].end(pre + response)
-                    clearInterval(interval)
-                } else {
-                    
-                }
-                
-            }, 100)
-            res.end("OK")
-        } else {
-            res.end(response)
-        }
-        
-        
-        return
-    }
+    
     
 
     if (url === "/") {
@@ -387,41 +425,6 @@ app.get("/*", function(req, res){
         
         res.end(html.replace("{{fileLinks}}", fileLinks))
         return
-    }
-
-    if (url.indexOf("__jscb/reportValues") !== -1) {
-        res.setHeader("Access-Control-Allow-Origin", "*")
-        res.setHeader("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
-        if (!req.body.length) {
-            res.end()
-            return
-        }
-        logger.logReceivedValues(req.body)
-
-        logger.logPerfStart("Save " + req.body.length + " values")
-        async.eachSeries(req.body, function iteratee(data, callback) {
-            var dataStore = getDataStore(data.scriptId)
-            dataStore.reportValue(data, callback) 
-        }, function(){
-            logger.logPerfEnd("Save " + req.body.length + " values")
-            if (saveTo) {
-                var data = {
-                    stores: _.mapValues(dataStores, s => s.serialize()),
-                    scriptIdCounter: scriptIdCounter,
-                    urlToScriptId: urlToScriptId
-                }
-
-                var stringifiedData = JSON.stringify(data, null, 4)
-                var mb = Math.round(stringifiedData.length / 1024 / 1024)
-                logger.debug("Saving data to " + saveTo + ": " + mb + "MB")
-                fs.writeFileSync(saveTo, stringifiedData)
-            }
-            
-            
-            res.end('{"status": "success"}')
-        });
-
-        
     }
 });
 
