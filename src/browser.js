@@ -3,7 +3,7 @@ if (!window.__jscb) {
 }
 
 function inittt() {
-    // {{REPLACE_WITH_CONFIG}}
+    //{{REPLACE_WITH_CONFIG}}
 
     var recordedValueBuffer = []
     var numberOfValuesCollectedByScriptIdValueId = {}
