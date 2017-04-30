@@ -169,6 +169,7 @@ function getAllValues(scriptId, cb){
 app.use( bodyParser.json({limit: "300mb"}) );
 
 app.post("/*", function(req, res){
+    logger.logRequest(req)
     var url = req.url.split("?")[0]
     if (url.indexOf("/response") !== -1) {
         var id = url.split("/")[2]
@@ -271,8 +272,20 @@ app.post("/*", function(req, res){
     }
 })
 
+app.options("/*", function(req, res){
+    var url = req.url.split("?")[0]
+    logger.logRequest(req)
+    if (url.indexOf("__jscb/reportValues") !== -1) {
+        // handle HEAD request
+        res.setHeader("Access-Control-Allow-Origin", "*")
+        res.setHeader("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
+        res.end()
+    }
+})
+
+
 app.get("/*", function(req, res){
-    logger.logRequest(req.method, req.url)
+    logger.logRequest(req)
     var url = req.url.split("?")[0]
 
     if (url.indexOf("/node_modules/") !== -1) {
@@ -286,6 +299,8 @@ app.get("/*", function(req, res){
         res.end(fs.readFileSync(pathFromRoot("src/ui/dist/bundle.js")).toString())
         return
     }
+
+    
 
     /*
         We use this URL to check if the Chrome extension is installed.

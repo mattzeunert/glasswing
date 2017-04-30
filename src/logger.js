@@ -26,9 +26,9 @@ function logPerfEnd(label){
     delete perf[label]
 }
 
-function logRequest(method, url){
+function logRequest(request){
     if (!logging.requests) { return }
-    console.log("[" + method + "]", url)
+    console.log("[" + request.method + "]", request.url)
 }
 
 function debug(){
