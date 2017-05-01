@@ -1,6 +1,25 @@
-test:
+machine:
+  node:
+    version: 6.9.2
+dependencies:
   pre:
+    - wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+    - sudo sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list'
+    - sudo apt-get update
+    - sudo apt-get install google-chrome-beta
+    - export CHROME_BIN=google-chrome-beta
+test:
+  # re-install node modules because sometimes it seems to install stuff with diff node
+  # version, so install time node version doesn't match runtime
+  # node version
+  pre:
+    - node --version
+    - rm -r node_modules
+    - npm install
     - npm run build
+    - npm run webdriver-manager-update
   override:
     - npm run karma-ci
     - npm run jasmine-node-ci
+    - npm run prepare-e2e-on-ci
+    - npm run e2e-tests

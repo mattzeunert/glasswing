@@ -3,18 +3,35 @@ console.log("bg")
 sessionsByTabId = []
 
 function onBrowserActionClicked(tab) {
-    var session = sessionsByTabId[tab.id]
-    if (session) {
-        session.close()
-        delete sessionsByTabId[tab.id]
-        chrome.tabs.reload(tab.id)
-    } else {
-        sessionsByTabId[tab.id] = new Session(tab.id)
-    }
+    activateGlasswing(tab.id)
 }
 chrome.browserAction.onClicked.addListener(onBrowserActionClicked);
 
+function activateGlasswing(tabId, preventReload){
+    var session = sessionsByTabId[tabId]
+    if (session) {
+        session.close()
+        delete sessionsByTabId[tabId]
+        chrome.tabs.reload(tabId)
+    } else {
+        sessionsByTabId[tabId] = new Session(tabId, preventReload)
+    }
+}
+
 var port = 9500
+
+function onAutoActicateGlasswing(request){
+    if (!sessionsByTabId[request.tabId]) {
+        // already reloading, no need to reload, and reload
+        // would apply to current page, not the one we just 
+        // started loading
+        var preventReload = true
+        return activateGlasswing(request.tabId, preventReload)
+    }
+}
+chrome.webRequest.onBeforeRequest.addListener(onAutoActicateGlasswing, {
+    urls: ["*://*/*?auto-activate-glasswing"]
+}, ["blocking"]);
 
 function onBeforeIsInstalledRequest(request, sender){
     return {
@@ -42,20 +59,22 @@ chrome.runtime.onMessage.addListener(function(request, sender) {
         
 });
 
-function Session(tabId){
+function Session(tabId, preventReload){
     this.tabId = tabId
     this.injected = false
     this.requestOrder = []
     this.closed = false
 
-    this._open()
+    this._open(preventReload)
 }
-Session.prototype._open = function(){
+Session.prototype._open = function(preventReload){
     this._onBeforeRequest = makeOnBeforeRequest(this)
 
     chrome.webRequest.onBeforeRequest.addListener(this._onBeforeRequest, {urls: ["<all_urls>"], tabId: this.tabId}, ["blocking"]);
 
-    chrome.tabs.reload(this.tabId)
+    if (!preventReload) {
+        chrome.tabs.reload(this.tabId)
+    }
 }
 Session.prototype.close = function(){
     this.closed = true
@@ -163,11 +182,11 @@ Session.prototype.updateBadge = function(){
             `
             var int = setInterval(function(){
                 
-                if (requestOrder[0] === url) {
-                    requestOrder.shift()
+                if (session.requestOrder[0] === url) {
+                    session.requestOrder.shift()
                     chrome.tabs.executeScript( session.tabId, {code: inj}, function(){
                         console.log("DONE Injecting", details.url)
-                        console.log("requestorder", requestOrder)
+                        console.log("requestorder", session.requestOrder)
                     })
                     clearInterval(int)
                 }

@@ -11,7 +11,10 @@
     "build": "webpack",
     "develop": "webpack --watch",
     "nodemon": "nodemon --ignore docs --ignore data -- ./bin/glasswing.js --verbose --save data",
-    "jekyll": "jekyll server --watch --source ./docs --destination ./docs/_site"
+    "jekyll": "jekyll server --watch --source ./docs --destination ./docs/_site",
+    "webdriver-manager-update": "webdriver-manager update",
+    "e2e-tests": "bash ./src/e2e-tests/run-e2e-tests.sh",
+    "prepare-e2e-on-ci": "bash ./src/e2e-tests/prepare-e2e-on-ci.sh"
   },
   "bin": {
     "glasswing": "bin/glasswing.js"
@@ -49,16 +52,19 @@
   },
   "devDependencies": {
     "babel-loader": "^6.4.1",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-react": "^6.24.1",
     "babel-types": "^6.24.1",
+    "http-server": "^0.9.0",
     "jasmine-core": "^2.5.2",
     "jasmine-node": "^1.14.5",
     "karma": "^1.6.0",
-    "babel-preset-es2015": "^6.24.1",
-    "babel-preset-react": "^6.24.1",
     "karma-chrome-launcher": "^2.0.0",
     "karma-jasmine": "^1.1.0",
     "karma-jasmine-diff-reporter": "^1.0.0",
-    "webpack": "^2.3.3",
-    "babel-loader": "^6.4.1"
+    "protractor": "^5.1.1",
+    "wdio-mocha-framework": "^0.5.10",
+    "webdriverio": "^4.8.0",
+    "webpack": "^2.3.3"
   }
 }
