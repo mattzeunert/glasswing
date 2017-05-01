@@ -213,7 +213,7 @@ app.post("/*", function(req, res){
 
         var configFile = fs.readFileSync(pathFromRoot("src/config.js")).toString()
         var pre = fs.readFileSync(pathFromRoot("src/browser.js")).toString()
-            .replace("// {{REPLACE_WITH_CONFIG}}", configFile)
+            .replace("{{REPLACE_WITH_CONFIG}}", configFile)
             .replace("{{port}}", port) + "\n\n"
         response = pre + response
 
