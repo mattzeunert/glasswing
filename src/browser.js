@@ -94,7 +94,7 @@ function inittt() {
                     // children: Array.prototype.map.call(value.children, c => serialize(c))
                 }
             }
-            else if (value.constructor !== NodeList) {
+            else if (value.constructor === NodeList) {
                 // NodeList was causing weird errors..., so add special handler
                 return {
                     type: "NodeList"
