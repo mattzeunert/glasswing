@@ -1,5 +1,9 @@
 var assert = require('assert');
 
+function assertContains(string, containedValue){
+    assert(string.indexOf(containedValue) !== -1)
+}
+
 describe("Basic Test", function(){
     it("Loads the basic demo page and sends values to server", function(){
         browser.url('http://localhost:7888/src/e2e-tests/basic-demo-page?auto-activate-glasswing')
@@ -22,7 +26,12 @@ describe("Basic Test", function(){
         var fileLinksTable = $(".file-links")
         fileLinksTable.waitForExist(5000)
         var jsFilePath = "http://localhost:7888/src/e2e-tests/basic-demo-page/basic-demo.js"
-        assert(fileLinksTable.getText().indexOf(jsFilePath) !== -1)
+        assertContains(fileLinksTable.getText(), jsFilePath)
     })
-    })
+    it("Shows annotated source", function(){
+        browser.click(".file-links a");
+        var monacoEditor = $(".monaco-editor")
+        monacoEditor.waitForExist(10000)
+        assertContains(monacoEditor.getText(), "function square")
+    }).timeout(100000)
 })
