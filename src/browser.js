@@ -100,6 +100,30 @@ function inittt() {
                     type: "NodeList"
                 }
             }
+            else if (value.constructor === DOMTokenList) {
+                // DOMTokenList was causing weird errors..., so add special handler
+                return {
+                    type: "DOMTokenList"
+                }
+            }
+            else if (value.constructor === MediaList) {
+                // MediaList was causing weird errors..., so add special handler
+                return {
+                    type: "MediaList"
+                }
+            }
+            else if (value.constructor === StyleSheetList) {
+                // StyleSheetList was causing weird errors..., so add special handler
+                return {
+                    type: "StyleSheetList"
+                }
+            }
+            else if (value.constructor === CSSRuleList) {
+                // CSSRuleList was causing weird errors..., so add special handler
+                return {
+                    type: "CSSRuleList"
+                }
+            }
             else if (value && value.length !== undefined && value.map === Array.prototype.map) {
                 return {
                     type: "array",
