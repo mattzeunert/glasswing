@@ -3,7 +3,11 @@ if (!window.__jscb) {
 }
 
 function inittt() {
-    {{REPLACE_WITH_CONFIG}}
+    try {
+        {{REPLACE_WITH_CONFIG}}
+    } catch (err) {
+        // replace with config might not be defined, but that's ok..
+    }
 
     var numberOfValuesCollectedByScriptIdValueId = {}
     var __jscb = {
