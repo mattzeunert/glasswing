@@ -3,33 +3,37 @@ console.log("bg")
 sessionsByTabId = []
 
 function onBrowserActionClicked(tab) {
-    activateGlasswing(tab.id)
+    toggleActivateGlasswing(tab.id)
 }
 chrome.browserAction.onClicked.addListener(onBrowserActionClicked);
 
-function activateGlasswing(tabId, preventReload){
+function toggleActivateGlasswing(tabId, preventReload){
     var session = sessionsByTabId[tabId]
     if (session) {
         session.close()
         delete sessionsByTabId[tabId]
-        chrome.tabs.reload(tabId)
+        if (!preventReload) {
+            chrome.tabs.reload(tabId)
+        }
     } else {
-        sessionsByTabId[tabId] = new Session(tabId, preventReload)
+        var forOneRequestOnly = preventReload
+        sessionsByTabId[tabId] = new Session(tabId, preventReload, forOneRequestOnly)
     }
 }
 
 var port = 9500
 
-function onAutoActicateGlasswing(request){
+function onAutoActivateGlasswingForOneRequest(request){
     if (!sessionsByTabId[request.tabId]) {
         // already reloading, no need to reload, and reload
         // would apply to current page, not the one we just 
         // started loading
         var preventReload = true
-        return activateGlasswing(request.tabId, preventReload)
+        toggleActivateGlasswing(request.tabId, preventReload)
+        sessionsByTabId[request.tabId].onBeforeRequest(request)
     }
 }
-chrome.webRequest.onBeforeRequest.addListener(onAutoActicateGlasswing, {
+chrome.webRequest.onBeforeRequest.addListener(onAutoActivateGlasswingForOneRequest, {
     urls: ["*://*/*?auto-activate-glasswing"]
 }, ["blocking"]);
 
@@ -59,13 +63,15 @@ chrome.runtime.onMessage.addListener(function(request, sender) {
         
 });
 
-function Session(tabId, preventReload){
+function Session(tabId, preventReload, forOneRequestOnly){
     this.tabId = tabId
     this.injected = false
     this.requestOrder = []
     this.closed = false
+    this._loaded = false
 
     this._open(preventReload)
+    this._forOneRequestOnly = forOneRequestOnly
 }
 Session.prototype._open = function(preventReload){
     this._onBeforeRequest = makeOnBeforeRequest(this)
@@ -105,12 +111,18 @@ Session.prototype.updateBadge = function(){
     return function(details) {
         session.updateBadge()
         if (details.type === "main_frame" ) {
+
             if (details.url.indexOf("https://") !== -1) {
                 session.canLoadInsecureContent = false
                 console.log("https site, can't load insecure content")
             } else {
                 session.canLoadInsecureContent = true;
             }
+
+            if (this.loaded && session._forOneRequestOnly) {
+                toggleActivateGlasswing(session.tabId, true)
+            }
+            this.loaded = true
             return
         }
 
