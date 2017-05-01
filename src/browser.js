@@ -3,7 +3,11 @@ if (!window.__jscb) {
 }
 
 function inittt() {
-    //{{REPLACE_WITH_CONFIG}}
+    try {
+        {{REPLACE_WITH_CONFIG}}
+    } catch (err) {
+        // replace with config might not be defined, but that's ok..
+    }
 
     var numberOfValuesCollectedByScriptIdValueId = {}
     var __jscb = {
@@ -92,6 +96,36 @@ function inittt() {
                     tagName: value.tagName,
                     innerHTML: value.innerHTML.slice(0, 100)
                     // children: Array.prototype.map.call(value.children, c => serialize(c))
+                }
+            }
+            else if (value.constructor === NodeList) {
+                // NodeList was causing weird errors..., so add special handler
+                return {
+                    type: "NodeList"
+                }
+            }
+            else if (value.constructor === DOMTokenList) {
+                // DOMTokenList was causing weird errors..., so add special handler
+                return {
+                    type: "DOMTokenList"
+                }
+            }
+            else if (value.constructor === MediaList) {
+                // MediaList was causing weird errors..., so add special handler
+                return {
+                    type: "MediaList"
+                }
+            }
+            else if (value.constructor === StyleSheetList) {
+                // StyleSheetList was causing weird errors..., so add special handler
+                return {
+                    type: "StyleSheetList"
+                }
+            }
+            else if (value.constructor === CSSRuleList) {
+                // CSSRuleList was causing weird errors..., so add special handler
+                return {
+                    type: "CSSRuleList"
                 }
             }
             else if (value && value.length !== undefined && value.map === Array.prototype.map) {

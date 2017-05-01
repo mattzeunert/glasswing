@@ -23,6 +23,9 @@
             .file-links tr:nth-child(even) td {
                 background: #f7f7f7;
             }
+            .file-links tr:hover td{
+                background: #eee;
+            }
             .setup-steps {
                 position: relative;
             }
@@ -64,7 +67,7 @@
             <div class="file-list" style="display: none">
                 <h3 style="font-weight: normal">Browse these JS files: </h3>
                 {{fileLinks}}
-                </div>
+                <p style="margin-top: 10px" >Glasswing works best on HTTP pages, HTTPS pages may not work.</p>
             </div>
 
             <div class="setup-install-chrome-extension alert alert-info" style="display: none">

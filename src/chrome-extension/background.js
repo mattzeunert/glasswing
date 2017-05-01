@@ -111,8 +111,7 @@ Session.prototype.updateBadge = function(){
     return function(details) {
         session.updateBadge()
         if (details.type === "main_frame" ) {
-
-            if (details.url.indexOf("https://") !== -1) {
+            if (details.url.indexOf("https://") !== -1 || details.url.indexOf("glasswing-pretend-its-https") !== -1) {
                 session.canLoadInsecureContent = false
                 console.log("https site, can't load insecure content")
             } else {

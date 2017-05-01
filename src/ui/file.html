@@ -44,6 +44,7 @@
                     opacity: 1;
                     background: white;
                     color: #555;
+                    border-bottom: 1px dotted #eee;
                 }
 
                 .toggle-value-detail-button {
@@ -59,37 +60,23 @@
         
         <br><br><br>
 
-<script>
-    window.valueCache = {}
+    <script>
+        window.valueCache = {}
 
-            function launch(){
-                require.config({ paths: { 'vs': monacoVsRoot }});
-                require(['vs/editor/editor.main'], function() {
-                    start()
-                    
-                });
-            }
+        function launch(){
+            require.config({ paths: { 'vs': monacoVsRoot }});
+            require(['vs/editor/editor.main'], function() {
+                start()
                 
+            });
+        }
+    </script>
 
-            </script>
+    {{scriptEmbeds}}
 
-{{scriptEmbeds}}
-
-        
-
-
-        
-
-
-
-        <script>
-            
-            {{valueEmbeds}}
-            
-
-            
-        </script>
-        
+    <script>            
+        {{valueEmbeds}}
+    </script>
 
            
     <script>
