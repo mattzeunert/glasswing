@@ -1,4 +1,4 @@
-# Glasswing
+# Glasswing [![CircleCI](https://circleci.com/gh/mattzeunert/glasswing.svg?style=svg)](https://circleci.com/gh/mattzeunert/glasswing)
 
 Glasswing lets you browse a website's code while seeing the actual runtime values
 of variables and function parameters.
