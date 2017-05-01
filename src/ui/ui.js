@@ -123,7 +123,7 @@ class OverlayContent extends Component {
 
             var exampleNav = null;
             if (examples && examples.length > 1) {
-                exampleNav = <div>
+                exampleNav = <div style={{background: "#ccc"}}>
                     {examples.map((e, i) => {
                         var previousExamples = examples.slice(0, i)
                         var previousExamplesThatAreSame = previousExamples.filter(function(prevExample){
