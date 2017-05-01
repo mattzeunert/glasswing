@@ -1,0 +1,1 @@
+sed -i -e 's/chromeOptions: {/chromeOptions: {binary:"\/usr\/bin\/google-chrome-beta",/g' wdio.conf.js
