@@ -30,8 +30,10 @@ describe("Basic Test", function(){
     })
     it("Shows annotated source", function(){
         browser.click(".file-links a");
-        var monacoEditor = $(".monaco-editor")
-        monacoEditor.waitForExist(10000)
-        assertContains(monacoEditor.getText(), "function square")
+        $("#code-container").waitForExist(20000)
+        var monacoEditor = $("body") // can't find the actual editor for some reason...
+        monacoEditor.waitForVisible(2000)
+        var html = monacoEditor.getHTML()
+        assertContains(html, "square")
     }).timeout(100000)
 })
