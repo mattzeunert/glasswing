@@ -5,7 +5,6 @@ if (!window.__jscb) {
 function inittt() {
     //{{REPLACE_WITH_CONFIG}}
 
-    var recordedValueBuffer = []
     var numberOfValuesCollectedByScriptIdValueId = {}
     var __jscb = {
         recordValue: function(scriptId, valueId, value){
@@ -20,11 +19,12 @@ function inittt() {
             numberOfValuesCollectedByScriptIdValueId[id] = numberOfValuesCollectedByScriptIdValueId[id] + 1
 
 
-            recordedValueBuffer.push({scriptId, valueId, value: __jscb.serializeValue(value)})
+            __jscb.recordedValueBuffer.push({scriptId, valueId, value: __jscb.serializeValue(value)})
             
             return value
         },
-        serializeValue
+        serializeValue,
+        recordedValueBuffer: []
     }
     window.__jscb = __jscb
 
@@ -155,22 +155,22 @@ function inittt() {
         return value
     }
     setInterval(function(){
-        if (recordedValueBuffer.length === 0) {
+        if (__jscb.recordedValueBuffer.length === 0) {
             return;
         }
-        var valuesToSend = recordedValueBuffer.length; 
+        var valuesToSend = __jscb.recordedValueBuffer.length; 
         if (valuesToSend > 250000) {
             valuesToSend = 250000
         }
         // debugger
-        var body = JSON.stringify(recordedValueBuffer.slice(0, valuesToSend))
+        var body = JSON.stringify(__jscb.recordedValueBuffer.slice(0, valuesToSend))
         console.time("Generate JSON")
         var body = "["
         for (var i=0; i<valuesToSend; i++) {
             if (i !== 0) {
                 body += ","
             }
-            var value = recordedValueBuffer[i]
+            var value = __jscb.recordedValueBuffer[i]
             var str = JSON.stringify(value)
             if (str.length > 1000) {
                 // console.log("Large serialized/stringified value", value)
@@ -201,7 +201,7 @@ function inittt() {
             window.dispatchEvent(event);
         }
         
-        recordedValueBuffer = recordedValueBuffer.slice(valuesToSend)
-        console.log("values in buffer: ", recordedValueBuffer.length)
+        __jscb.recordedValueBuffer = __jscb.recordedValueBuffer.slice(valuesToSend)
+        console.log("values in buffer: ", __jscb.recordedValueBuffer.length)
     }, 1000)
 }

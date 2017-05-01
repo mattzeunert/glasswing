@@ -1,6 +1,6 @@
 machine:
   node:
-    version: 6
+    version: 6.9.2
 dependencies:
   pre:
     - wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
@@ -9,7 +9,13 @@ dependencies:
     - sudo apt-get install google-chrome-beta
     - export CHROME_BIN=google-chrome-beta
 test:
+  # re-install node modules because sometimes it seems to install stuff with diff node
+  # version, so install time node version doesn't match runtime
+  # node version
   pre:
+    - node --version
+    - rm -r node_modules
+    - npm install
     - npm run build
     - npm run webdriver-manager-update
   override:
