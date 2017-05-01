@@ -35,5 +35,10 @@ describe("Basic Test", function(){
         monacoEditor.waitForVisible(2000)
         var html = monacoEditor.getHTML()
         assertContains(html, "square")
-    }).timeout(100000)
+    })
+    it("Shows details when user hovers over value", function(){
+        assert($(".value-4").getText() === "window.a")
+        browser.moveToObject(".value-4")
+        assert($("#overlay").getText() === "25")
+    }).timeout(4000000)
 })
