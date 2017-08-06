@@ -81,6 +81,7 @@ function DataStore(options){
     this.url = options.url
     this.locations = options.locations
     this.code = options.code
+    this.sourceFiles = options.sourceFiles
 }
 DataStore.prototype.reportValue = function(data, callback){
     this.locations[data.valueId].hasValue = true
@@ -104,7 +105,8 @@ DataStore.prototype.serialize = function(){
         dbFileName: this.dbFileName,
         url: this.url,
         locations: this.locations,
-        code: this.code
+        code: this.code,
+        sourceFiles: this.sourceFiles
     }
 }
 DataStore.deserialize =  function(data){
@@ -175,6 +177,7 @@ app.post("/*", function(req, res){
         var id = url.split("/")[2]
 
         var response = req.body.response
+        let promise
         if (endsWith(req.body.url, ".js") || req.body.requestType === "script") {
             var scriptId = urlToScriptId[req.body.url]
             if (!scriptId){
@@ -188,51 +191,56 @@ app.post("/*", function(req, res){
             logger.logPerfEnd("Prettify " + req.body.url)
 
             logger.logPerfStart("Compile " + req.body.url)
-            var compiled = compiler.compile(response, {
-                scriptId
-            })
-            logger.logPerfEnd("Compile " + req.body.url)
-
-            if (!dataStores[scriptId]) {
-                dataStores[scriptId] = new DataStore({
-                    code: response,
-                    locations: compiled.locations,
-                    url: req.body.url
-                })
-            } else {
-                if (dataStores[scriptId].code !== response) {
-                    console.warn("It looks like the code for this file changed, you need to restart the server and save to a different location!", req.body.url)
-                }
-                console.log("re-using datastore for url", req.body.url)
-            }
-            
-
-            response = compiled.code
-        }
-        
-
-        var configFile = fs.readFileSync(pathFromRoot("src/config.js")).toString()
-        var pre = fs.readFileSync(pathFromRoot("src/browser.js")).toString()
-            .replace("{{REPLACE_WITH_CONFIG}}", configFile)
-            .replace("{{port}}", port) + "\n\n"
-        response = pre + response
-
-        if (!req.body.returnProcessedContent) {
-            var interval = setInterval(function(){
-                if (resById[id]) {
-                    
-                    resById[id].end(pre + response)
-                    clearInterval(interval)
+            promise =  compiler.compile(response, {
+                scriptId,
+                filePath: req.body.url
+            }).then(function(compiled){
+                logger.logPerfEnd("Compile " + req.body.url)
+                
+                if (!dataStores[scriptId]) {
+                    debugger
+                    dataStores[scriptId] = new DataStore({
+                        code: response,
+                        locations: compiled.locations,
+                        url: req.body.url,
+                        sourceFiles: compiled.sourceFiles
+                    })
                 } else {
-                    
+                    if (dataStores[scriptId].code !== response) {
+                        console.warn("It looks like the code for this file changed, you need to restart the server and save to a different location!", req.body.url)
+                    }
+                    console.log("re-using datastore for url", req.body.url)
                 }
                 
-            }, 100)
-            res.end("OK")
+                response = compiled.code
+            })
         } else {
-            res.end(response)
+            promise = Promise.resolve()
         }
         
+        promise.then(function(){
+            var configFile = fs.readFileSync(pathFromRoot("src/config.js")).toString()
+            var pre = fs.readFileSync(pathFromRoot("src/browser.js")).toString()
+                .replace("{{REPLACE_WITH_CONFIG}}", configFile)
+                .replace("{{port}}", port) + "\n\n"
+            response = pre + response
+    
+            if (!req.body.returnProcessedContent) {
+                var interval = setInterval(function(){
+                    if (resById[id]) {
+                        
+                        resById[id].end(pre + response)
+                        clearInterval(interval)
+                    } else {
+                        
+                    }
+                    
+                }, 100)
+                res.end("OK")
+            } else {
+                res.end(response)
+            }
+        })
         
         return
     }
@@ -328,7 +336,7 @@ app.get("/*", function(req, res){
         return
     }
 
-    if (url.indexOf("/__jscb/getLocations") !== -1) {
+    if (url.indexOf("/__jscb/getLocations/") !== -1) {
         var scriptId = parseFloat(url.replace("/__jscb/getLocations/", ""))
 
         var info = getDataStore(scriptId)
@@ -336,6 +344,37 @@ app.get("/*", function(req, res){
 
 
         return
+    }
+
+    if (url.indexOf("/__jscb/getLocationsForFile") !== -1) {
+        var filePath = decodeURIComponent(url.replace("/__jscb/getLocationsForFile/", ""))
+
+        let matchingDataStore = null;
+        Object.keys(dataStores).forEach(function(dataStoreKey){
+            const dataStore = dataStores[dataStoreKey]
+            if(dataStore.sourceFiles.includes(filePath)){
+                matchingDataStore = dataStore
+            }
+        })
+        
+        if (!matchingDataStore) {
+            res.end("datastore not found")
+            return
+        }
+
+        const filteredLocations = {}
+        Object.keys(matchingDataStore.locations).forEach(function(locationKey){
+            const loc = matchingDataStore.locations[locationKey]
+            if (loc.sourceMappedLocation.fileName === filePath) {
+                filteredLocations[locationKey] = loc
+            }
+        })
+
+        res.end(JSON.stringify(filteredLocations))
+        
+        
+        return
+        
     }
 
     if (url.indexOf("/__jscb/getCode") !== -1) {

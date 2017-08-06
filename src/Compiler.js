@@ -1,6 +1,9 @@
 const transform = require('babel-core').transform
 const t = require("babel-types")
-
+const StackFrame = require("stackframe")
+const StackTraceGPS = require("stacktrace-gps")
+const requestPromise = require("request-promise-native")
+const async = require("async")
 
 function Compiler(){
 
@@ -10,10 +13,55 @@ Compiler.prototype.compile = function(code, options){
     var babelResult = transform(code, {
         plugins: [plugin.plugin]
     })
-    return {
-        code: babelResult.code,
-        locations: plugin.locations
-    }
+    return new Promise(function(resolve, reject){
+        applySourcemapsToLocations(plugin.locations, options.filePath).then(function(){
+            const sourceFiles = []
+            Object.keys(plugin.locations).forEach(function(locKey){
+                const loc = plugin.locations[locKey]
+                const fileName = loc.sourceMappedLocation.fileName
+                if (sourceFiles.indexOf(fileName) === -1) {
+                    sourceFiles.push(fileName)
+                }
+            })
+            resolve({
+                code: babelResult.code,
+                sourceFiles: sourceFiles,
+                locations: plugin.locations
+            })
+        })
+    })
+}
+
+function applySourcemapsToLocations(locations, filePath){
+    return new Promise(function(resolve, reject){
+        var gps = new StackTraceGPS({
+            ajax: function(url){
+                console.log("stacktrace gps requesting", url)
+                return requestPromise(url)
+            }
+        });
+    
+        async.each(Object.keys(locations), function(locationKey, callback) {
+            const loc = locations[locationKey]
+            var stackframe = new StackFrame({
+                fileName: filePath, 
+                lineNumber: loc.loc.start.line,
+                columnNumber: loc.loc.start.column
+            });
+            
+            // console.log("location", locationKey)
+            gps.pinpoint(stackframe).then(function(sourceMappedStackFrame){
+                console.log("done resolve", locationKey)
+                loc.sourceMappedLocation = sourceMappedStackFrame
+                callback()
+            }, function(){
+                console.log("failure", arguments, stackframe)
+            })
+        }, function complete(){
+            console.log("complete")
+            resolve()
+        })
+    })
 }
 
 function getPlugin(scriptId, js){

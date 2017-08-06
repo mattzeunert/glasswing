@@ -48,7 +48,10 @@
     "prettier": "^1.2.2",
     "react": "^15.5.4",
     "react-dom": "^15.5.4",
-    "request": "^2.81.0"
+    "request": "^2.81.0",
+    "request-promise-native": "^1.0.4",
+    "stackframe": "^1.0.3",
+    "stacktrace-gps": "^3.0.1"
   },
   "devDependencies": {
     "babel-loader": "^6.4.1",
