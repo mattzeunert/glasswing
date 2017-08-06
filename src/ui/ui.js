@@ -144,7 +144,7 @@ class OverlayContent extends Component {
                             onMouseEnter={() => this.setState({previewExampleIndex: i})}
                             onMouseLeave={() => this.setState({previewExampleIndex: null})}
                             >
-                            {i}
+                            {i + 1}
                         </button>
                     })}
                 </div>
