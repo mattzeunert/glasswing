@@ -375,7 +375,8 @@ app.get("/*", function(req, res){
             Object.keys(matchingDataStore.locations).forEach(function(locationKey){
                 const loc = matchingDataStore.locations[locationKey]
                 if (loc.sourceMappedLocation.fileName === filePath) {
-                    filteredLocations[locationKey] = loc.sourceMappedLocation
+                    filteredLocations[locationKey] = JSON.parse(JSON.stringify(loc))
+                    filteredLocations[locationKey].loc = loc.sourceMappedLocation.loc
                     // filteredLocations[locationKey].sta = loc.loc.start
                     // filteredLocations[locationKey].end= loc.loc.end
                 }

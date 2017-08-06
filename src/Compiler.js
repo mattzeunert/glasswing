@@ -33,6 +33,22 @@ Compiler.prototype.compile = function(code, options){
 }
 
 
+// var gps = new StackTraceGPS({
+//     ajax: function(url){
+//         console.log("stacktrace gps requesting", url)
+//         return requestPromise(url)
+//     }
+// });
+// var stackframeStart = new StackFrame({
+//     fileName: 'http://localhost:3000/static/js/bundle.js', 
+//     lineNumber: 726,
+//     columnNumber: 8
+// });
+// gps.pinpoint(stackframeStart).then(function(sourceMappedStackFrameStart){
+//     console.log("sourcempaestart", sourceMappedStackFrameStart)
+// })
+
+
 function applySourcemapsToLocations(locations, filePath){
     return new Promise(function(resolve, reject){
         var gps = new StackTraceGPS({
@@ -57,7 +73,7 @@ function applySourcemapsToLocations(locations, filePath){
             
             // console.log("location", locationKey)
             gps.pinpoint(stackframeStart).then(function(sourceMappedStackFrameStart){
-                gps.pinpoint(stackframeEnd).then(function(sourceMappedStackFrameEnd){
+                // gps.pinpoint(stackframeEnd).then(function(sourceMappedStackFrameEnd){
                     console.log("done resolve", locationKey)
                     if (sourceMappedStackFrameStart.fileName === "/Users/mattzeunert/projects/js-code-browser/example/src/App.js" && sourceMappedStackFrameStart.lineNumber> 50) {
                         debugger
@@ -66,21 +82,19 @@ function applySourcemapsToLocations(locations, filePath){
                         fileName: sourceMappedStackFrameStart.fileName,
                         loc: {
                             start: {
-                                line: sourceMappedStackFrameStart.lineNumber + 1,
+                                line: sourceMappedStackFrameStart.lineNumber,
                                 column: sourceMappedStackFrameStart.columnNumber
                             },
                             end: {
-
-                                // TODO: use end, but for some reason it's not source mapping correclty 
-                                line: sourceMappedStackFrameEnd.lineNumber + 1,
-                                column: sourceMappedStackFrameEnd.columnNumber
+                                line: sourceMappedStackFrameStart.lineNumber,
+                                column: sourceMappedStackFrameStart.columnNumber + (loc.loc.end.column - loc.loc.start.column)
                             }
                         }
                     }
                     callback()
-                })
+                // })
             }, function(){
-                console.log("failure", arguments, stackframe)
+                console.log("failure", arguments, stackframeStart, stackframeEnd)
             })
         }, function complete(){
             console.log("complete")
