@@ -21,9 +21,11 @@ window.start = function(){
             console.log("not sure wht this is... look into, no location info")
             return
         }
+        
         var type = locations[key].type
         var start = location.start
         var end = location.end
+        console.log(start, end)
         if (type === "returnStatement") {
             end = {line: start.line, column: start.column + "return".length }
         }

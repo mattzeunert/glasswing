@@ -32,6 +32,7 @@ Compiler.prototype.compile = function(code, options){
     })
 }
 
+
 function applySourcemapsToLocations(locations, filePath){
     return new Promise(function(resolve, reject){
         var gps = new StackTraceGPS({
@@ -43,17 +44,41 @@ function applySourcemapsToLocations(locations, filePath){
     
         async.each(Object.keys(locations), function(locationKey, callback) {
             const loc = locations[locationKey]
-            var stackframe = new StackFrame({
+            var stackframeStart = new StackFrame({
                 fileName: filePath, 
                 lineNumber: loc.loc.start.line,
                 columnNumber: loc.loc.start.column
             });
+            var stackframeEnd = new StackFrame({
+                fileName: filePath, 
+                lineNumber: loc.loc.end.line,
+                columnNumber: loc.loc.end.column
+            });
             
             // console.log("location", locationKey)
-            gps.pinpoint(stackframe).then(function(sourceMappedStackFrame){
-                console.log("done resolve", locationKey)
-                loc.sourceMappedLocation = sourceMappedStackFrame
-                callback()
+            gps.pinpoint(stackframeStart).then(function(sourceMappedStackFrameStart){
+                gps.pinpoint(stackframeEnd).then(function(sourceMappedStackFrameEnd){
+                    console.log("done resolve", locationKey)
+                    if (sourceMappedStackFrameStart.fileName === "/Users/mattzeunert/projects/js-code-browser/example/src/App.js" && sourceMappedStackFrameStart.lineNumber> 50) {
+                        debugger
+                    }
+                    loc.sourceMappedLocation = {
+                        fileName: sourceMappedStackFrameStart.fileName,
+                        loc: {
+                            start: {
+                                line: sourceMappedStackFrameStart.lineNumber + 1,
+                                column: sourceMappedStackFrameStart.columnNumber
+                            },
+                            end: {
+
+                                // TODO: use end, but for some reason it's not source mapping correclty 
+                                line: sourceMappedStackFrameEnd.lineNumber + 1,
+                                column: sourceMappedStackFrameEnd.columnNumber
+                            }
+                        }
+                    }
+                    callback()
+                })
             }, function(){
                 console.log("failure", arguments, stackframe)
             })

@@ -121,6 +121,22 @@ function getDataStore(scriptId){
     return dataStores[scriptId]
 }
 
+function getScriptIdFromSourceMappedFilePath(filePath){
+    let matchingDataStore = null;
+    Object.keys(dataStores).forEach(function(dataStoreKey){
+        const dataStore = dataStores[dataStoreKey]
+        if(dataStore.sourceFiles.includes(filePath)){
+            matchingDataStore = dataStore
+        }
+    })
+
+    if (!matchingDataStore) {
+        return null
+    }
+
+    return urlToScriptId[matchingDataStore.url]
+}
+
 var scriptIdCounter = 1
 
 const resById = {}
@@ -186,9 +202,9 @@ app.post("/*", function(req, res){
                 urlToScriptId[req.body.url] = scriptId
             }
             
-            logger.logPerfStart("Prettify " + req.body.url)
-            response = prettifyJS(response)
-            logger.logPerfEnd("Prettify " + req.body.url)
+            // logger.logPerfStart("Prettify " + req.body.url)
+            // response = prettifyJS(response)
+            // logger.logPerfEnd("Prettify " + req.body.url)
 
             logger.logPerfStart("Compile " + req.body.url)
             promise =  compiler.compile(response, {
@@ -336,41 +352,41 @@ app.get("/*", function(req, res){
         return
     }
 
-    if (url.indexOf("/__jscb/getLocations/") !== -1) {
-        var scriptId = parseFloat(url.replace("/__jscb/getLocations/", ""))
-
-        var info = getDataStore(scriptId)
-        res.end(JSON.stringify(info.locations))
-
-
-        return
-    }
 
     if (url.indexOf("/__jscb/getLocationsForFile") !== -1) {
         var filePath = decodeURIComponent(url.replace("/__jscb/getLocationsForFile/", ""))
 
-        let matchingDataStore = null;
-        Object.keys(dataStores).forEach(function(dataStoreKey){
-            const dataStore = dataStores[dataStoreKey]
-            if(dataStore.sourceFiles.includes(filePath)){
-                matchingDataStore = dataStore
+        let locations
+        if (urlToScriptId[filePath]) {
+            // not sourcemapped
+            const scriptId = urlToScriptId[filePath]
+            locations = getDataStore(scriptId).locations
+
+        } else {
+            // try source mapped
+            const matchingDataStore = dataStores[getScriptIdFromSourceMappedFilePath(filePath)]
+            
+            if (!matchingDataStore) {
+                res.end("datastore not found")
+                return
             }
-        })
-        
-        if (!matchingDataStore) {
-            res.end("datastore not found")
-            return
+    
+            const filteredLocations = {}
+            Object.keys(matchingDataStore.locations).forEach(function(locationKey){
+                const loc = matchingDataStore.locations[locationKey]
+                if (loc.sourceMappedLocation.fileName === filePath) {
+                    filteredLocations[locationKey] = loc.sourceMappedLocation
+                    // filteredLocations[locationKey].sta = loc.loc.start
+                    // filteredLocations[locationKey].end= loc.loc.end
+                }
+            })
+    
+           locations = filteredLocations
         }
 
-        const filteredLocations = {}
-        Object.keys(matchingDataStore.locations).forEach(function(locationKey){
-            const loc = matchingDataStore.locations[locationKey]
-            if (loc.sourceMappedLocation.fileName === filePath) {
-                filteredLocations[locationKey] = loc
-            }
-        })
+        res.end(JSON.stringify(locations, null, 4))
 
-        res.end(JSON.stringify(filteredLocations))
+        
         
         
         return
@@ -378,11 +394,17 @@ app.get("/*", function(req, res){
     }
 
     if (url.indexOf("/__jscb/getCode") !== -1) {
-        var scriptId = parseFloat(url.replace("/__jscb/getCode/", ""))
+        var filePath = decodeURIComponent(url.replace("/__jscb/getCode/", ""))
 
-        var info = getDataStore(scriptId)
-        res.end(info.code)
-
+        console.log("filepath", filePath)
+        var scriptId = urlToScriptId[filePath]
+        if (scriptId) {
+            var info = getDataStore(scriptId)
+            res.end(info.code)
+        } else {
+            // TODO: check if security implications of doing this!!!
+            res.end(fs.readFileSync(filePath).toString())
+        }
 
         return
     }
@@ -401,12 +423,15 @@ app.get("/*", function(req, res){
         var url = decodeURIComponent(req.url).replace("/browse?", "")
 
         var scriptId = urlToScriptId[url]
+        if (!scriptId) {
+            scriptId = getScriptIdFromSourceMappedFilePath(url)
+        }
         var info = getDataStore(scriptId)
         if (!info){
             res.end("No data for this file has been collected. Load a web page that loads this file")
         } else {
             var isDemo = false;
-            renderInfo(info, scriptId, isDemo, text => res.end(text))
+            renderInfo(info, scriptId, url, isDemo, text => res.end(text))
             
         }
         
@@ -499,7 +524,8 @@ function exportDemo(scriptId){
         var code = JSON.stringify(store.code)
         fs.writeFileSync(outDir + "/code.js", store.code)
 
-        var html = renderInfo(store, scriptId, true, function(html){
+        throw 'todooooasofsdfkjl'
+        var html = renderInfo(store, scriptId, 'todooooasofsdfkjl', true, function(html){
             fs.writeFileSync(outDir + "/index.html", html)
 
             var ncp = require('ncp').ncp;
@@ -515,7 +541,7 @@ function exportDemo(scriptId){
 
 // exportDemo(urlToScriptId["http://localhost:7777/demos/simple.js"])
 
-function renderInfo(info,scriptId, isDemo, cb){
+function renderInfo(info,scriptId,scriptUrl, isDemo, cb){
     var res = {}
 
     var valueIds = Object.keys(info.locations)
@@ -534,6 +560,7 @@ function renderInfo(info,scriptId, isDemo, cb){
         // window.values = JSON.parse(decodeURI("${encodeURI(JSON.stringify(res))}"));
     var valueEmbeds = `
         window.scriptId =${scriptId};
+        window.scriptUrl = '${scriptUrl}'
         window.isDemo = ${isDemo ? "true" : "false"}
     `
 

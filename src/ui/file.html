@@ -81,11 +81,11 @@
            
     <script>
         if (!isDemo){ 
-            fetch("/__jscb/getLocations/" + scriptId)
+            fetch("/__jscb/getLocationsForFile/" + encodeURIComponent(scriptUrl))
             .then(r => r.json())
             .then(locations =>{
                 window.locations = locations
-                fetch("/__jscb/getCode/" + scriptId)
+                fetch("/__jscb/getCode/" + encodeURIComponent(scriptUrl))
                 .then(r => r.text())
                 .then(code =>{
                     window.code = code
